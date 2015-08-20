@@ -1,0 +1,22 @@
+.http-detail {
+    width: 49%;
+    height: 200px;
+    border: 1px solid;
+    overflow: scroll;
+    display: block;
+}
+
+table tr:nth-child(even) {
+    background-color: #eee;
+}
+table tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+.first-line {
+    font-weight: bold;
+}
+
+#detail {
+    font-family: 'Courier New', Courier, monospace;
+}
