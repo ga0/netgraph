@@ -36,6 +36,12 @@ Stream.prototype.displayEventDetail = function(ev) {
     }  
 }
 
+function addRequestToTable(req, resp) {
+    var tr = "<tr><td>"+req.Method+"</td><td>"+req.Uri+"</td><td>"+resp.Code+"</td></tr>"
+    $("#http-list").append(tr)
+    
+}
+
 Stream.prototype.addEvent = function(ev) {
     var g
     var x = this.lineX + parseFloat(ev.Timestamp) * 500
@@ -81,7 +87,9 @@ Stream.prototype.addEvent = function(ev) {
                 })
             reqEv.line = l
             ev.line = l
+            addRequestToTable(reqEv, ev)
         }
+        
     }
     var stream = this
     g.attr({

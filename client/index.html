@@ -1,8 +1,9 @@
 <html>
     <head>
         <title>NetGraph</title>
-        <script src="/jquery-1.9.1.min.js"></script>
-        <script src="/snap.svg-min.js"></script>
+        <script src="/lib/jquery-1.9.1.min.js"></script>
+        <script src="/lib/snap.svg-min.js"></script>
+        <script src="/lib/angular.min.js"></script>
         <script src="/main.js"></script>
         <link href="/main.css" rel="stylesheet">
     </head>
@@ -11,6 +12,10 @@
         <script>window.onload = start</script>
         <div style="height:200px; width:100%; border:1px solid #000; overflow: scroll">
             <svg id="ng" height="400" version="1.1" width="400" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div style="width:100%">
+            <table id="http-list">
+            </table>
         </div>
         <div id="detail" style="width:100%">
             <div id="request" class="http-detail" style="float: left;">
