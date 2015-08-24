@@ -1,9 +1,26 @@
+.requests {
+    height: 400px;
+    overflow: scroll;
+}
 .http-detail {
     width: 49%;
     height: 200px;
     border: 1px solid;
     overflow: scroll;
     display: block;
+}
+table {
+    font-family: 'Courier New', Courier, monospace;
+    table-layout: fixed;
+}
+
+tr {
+}
+
+td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 table tr:nth-child(even) {
@@ -15,8 +32,4 @@ table tr:nth-child(odd) {
 
 .first-line {
     font-weight: bold;
-}
-
-#detail {
-    font-family: 'Courier New', Courier, monospace;
 }

@@ -27,7 +27,7 @@ var (
 
 func init() {
     httpRequestFirtLine = regexp.MustCompile("([A-Z]*) (.*) (.*)")
-    httpResponseFirtLine = regexp.MustCompile("(.*) \\d* (.*)")
+    httpResponseFirtLine = regexp.MustCompile("(.*) (\\d*) (.*)")
 }
 
 type Packet struct {
@@ -129,7 +129,7 @@ func (s HttpStream) getHeader() (m HttpMessage, more bool) {
                 if line[:5] != "HTTP/" {
                     panic("Bad HTTP Response: \n" + line)
                 }
-                r := httpRequestFirtLine.FindStringSubmatch(line)
+                r := httpResponseFirtLine.FindStringSubmatch(line)
                 if len(r) != 4 {
                     panic("Bad HTTP Response: \n" + line)
                 }
