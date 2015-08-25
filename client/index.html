@@ -1,6 +1,6 @@
 <html ng-app="netgraph" ng-controller="HttpListCtrl">
     <head>
-        <title>[{{streams.length}}] NetGraph</title>
+        <title>[{{reqs.length}}] NetGraph</title>
         <script src="/lib/jquery-1.9.1.min.js"></script>
         <script src="/lib/snap.svg-min.js"></script>
         <script src="/lib/angular.min.js"></script>
@@ -22,11 +22,11 @@
                     <th width="10%">Reason</th>
                     </tr>
                 </thead>
-                <tr ng-repeat="req in reqs" ng-click="showDetail(req)">
-                    <td>{{ req.StreamSeq }}</td>
+                <tr ng-repeat="req in reqs" ng-click="showDetail($event, req)">
+                    <td><span style="color:red" ng-if="!req.Response">*</span>{{ req.StreamSeq }}</td>
                     <td>{{ req.Timestamp }}</td>
                     <td>{{ req.Method }}</td>
-                    <td title="{{ req.Uri }}">{{ req.Uri }}</td>
+                    <td><a href="http://{{getHost(req)}}{{req.Uri}}" target="_blank">{{ req.Uri }}</a></td>
                     <td>{{ req.Response.Code }}</td>
                     <td>{{ req.Response.Reason }}</td>
                 </tr>
@@ -34,16 +34,28 @@
         </div>
         <div id="detail" style="width:100%">
             <div id="request-detail" class="http-detail" style="float: left;">
-                <div id="request-first-line" class="first-line"></div>
+                <div id="request-first-line" class="first-line">
+                    {{ selectedReq.Method }} {{ selectedReq.Uri }} {{ selectedReq.Version }}
+                </div>
                 <div id="request-head">
                     <table>
+                        <tr ng-repeat="h in selectedReq.Headers">
+                            <td>{{ h.Name }}</td>
+                            <td>{{ h.Value }}</td>
+                        </tr>
                     </table>
                 </div>
             </div>
             <div id="response-detail" class="http-detail" style="float: right;">
-                <div id="response-first-line" class="first-line"></div>
+                <div id="response-first-line" class="first-line">
+                    {{ selectedReq.Response.Version }} {{ selectedReq.Response.Code }} {{ selectedReq.Response.Reason }}
+                </div>
                 <div id="response-head">
                     <table>
+                        <tr ng-repeat="h in selectedReq.Response.Headers">
+                            <td>{{ h.Name }}</td>
+                            <td>{{ h.Value }}</td>
+                        </tr>
                     </table>
                 </div>
             </div>

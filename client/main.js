@@ -18,7 +18,6 @@ app.factory('netdata', function($websocket) {
         } else if (e.Type == "HttpResponse") {
             if (stream.length > 0) {
                 stream[stream.length-1].Response = e
-                console.log(e.Code)
             }
         }
     });
@@ -32,30 +31,25 @@ app.factory('netdata', function($websocket) {
     return data;
 })
 app.controller('HttpListCtrl', function ($scope, netdata) {
-    console.log("called")
     $scope.reqs = netdata.reqs;
-    $scope.showDetail = function(req) {
-        var reqHeader = $("#request-head table")
-        var respHeader = $("#response-head table")
-        reqHeader.html("")
-        respHeader.html("")
-        $("#request-first-line").html("")
-        $("#response-first-line").html("")
-        
-        
-        $("#request-first-line").html(req.Method + " " + req.Uri + " " + req.Version)
-        for (var i = 0; i < req.Headers.length; ++i) {
-            var hi = req.Headers[i]
-                reqHeader.append("<tr><td>"+hi.Name+"</td><td>"+hi.Value+"</td></tr>")
+    $scope.showDetail = function($event, req) {
+        $scope.selectedReq = req
+        var tr = $event.currentTarget
+        if ($scope.selectedRow) {
+            $($scope.selectedRow).attr("style", "")
         }
-        if (req.Response) {
-            var resp = req.Response
-            $("#response-first-line").html(resp.Version + " " + resp.Code + " " + resp.Reason)
-            for (var i = 0; i < resp.Headers.length; ++i) {
-                var hi = resp.Headers[i]
-                    respHeader.append("<tr><td>"+hi.Name+"</td><td>"+hi.Value+"</td></tr>")
+        $scope.selectedRow = tr
+        $(tr).attr("style", "background-color: lightgreen")
+    }
+    $scope.getHost = function(req) {
+        for (var i = 0; i < req.Headers.length; ++i) {
+            var h = req.Headers[i]
+            if (h.Name == "Host") {
+                return h.Value
             }
         }
+        return null
     }
+    $scope.selectedRow = null
     netdata.sync()
 })

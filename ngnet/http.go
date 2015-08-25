@@ -70,10 +70,6 @@ func relativeTimestamp(t time.Time) float64 {
 func (s *HttpStreamReader) fillBuffer() error {
     if dataBlock, more := <-s.src; more {
         s.buffer.Write(dataBlock.Bytes)
-        /*fmt.Printf("#%d Packet %f %v\n",
-          s.seq,
-          relativeTimestamp(dataBlock.Seen),
-          len(dataBlock.Bytes))*/
         s.lastTimeStamp = relativeTimestamp(dataBlock.Seen)
         return nil
     } else {
@@ -106,13 +102,13 @@ func (f HttpStreamReader) Next(n int) ([]byte, error) {
 
 type HttpStream struct {
     reader     *HttpStreamReader
-    streamsSeq uint
+    streamSeq  uint
     requestSeq uint
     wg         *sync.WaitGroup
     eventChan  chan interface{}
     sem        chan byte
     direction  Direction
-    bad        bool
+    bad        *bool
 }
 
 func (s HttpStream) getHeader() (m HttpMessage, more bool) {
@@ -151,7 +147,7 @@ func (s HttpStream) getHeader() (m HttpMessage, more bool) {
                 e.Version = r[3]
                 m = e
             }
-            m.SetStreamSeq(s.streamsSeq)
+            m.SetStreamSeq(s.streamSeq)
             m.SetTimestamp(s.reader.lastTimeStamp)
             m.SetEndTimestamp(s.reader.lastTimeStamp)
             continue
@@ -239,7 +235,8 @@ func GetHttpSize(hs []HttpHeaderItem) (contentLength int, chunked bool) {
 func (s HttpStream) Process() {
     defer func() {
         if r := recover(); r != nil {
-            s.bad = true
+            *s.bad = true
+            //close(s.reader.src)
             fmt.Println("HttpStream error: ", r)
         }
     }()
@@ -276,17 +273,18 @@ func (s HttpStream) Process() {
 func NewHttpStream(src PacketSource, meta string, seq uint, wg *sync.WaitGroup, eventChan chan interface{}, sem chan byte, dir Direction) HttpStream {
     var s HttpStream
     s.reader = NewHttpStreamReader(src, seq)
-    s.streamsSeq = seq
+    s.streamSeq = seq
     s.wg = wg
     s.eventChan = eventChan
     s.sem = sem
     s.direction = dir
+    s.bad = new(bool)
     return s
 }
 
 func (s HttpStream) Reassembled(rs []tcpassembly.Reassembly) {
     for _, r := range rs {
-        if s.bad {
+        if *s.bad {
             break
         }
         s.reader.src <- r
@@ -357,7 +355,7 @@ func (f HttpStreamFactory) New(netFlow, tcpFlow gopacket.Flow) (ret tcpassembly.
         streamPair.upStream = &s
         (*f.uniStreams)[key] = streamPair
         *f.seq++
-        fmt.Printf("#%d Connect %s\n", streamPair.connSeq, key)
+        //fmt.Printf("#%d Connect %s\n", streamPair.connSeq, key)
         go s.Process()
         ret = s
     }

@@ -8,13 +8,11 @@
     border: 1px solid;
     overflow: scroll;
     display: block;
+    font-family: 'Courier New', Courier, monospace;
 }
 table {
     font-family: 'Courier New', Courier, monospace;
     table-layout: fixed;
-}
-
-tr {
 }
 
 td {
@@ -28,6 +26,12 @@ table tr:nth-child(even) {
 }
 table tr:nth-child(odd) {
     background-color: #fff;
+}
+table tr:nth-child(odd):hover {
+    background-color: yellow;
+}
+table tr:nth-child(even):hover {
+    background-color: yellow;
 }
 
 .first-line {
