@@ -16,7 +16,7 @@ func TestNgnet(t *testing.T) {
     assembler := tcpassembly.NewAssembler(pool)
     packetCount := 0
     fmt.Println("Run")
-    if handle, err := pcap.OpenOffline("dump.txt"); err != nil {
+    if handle, err := pcap.OpenOffline("dump.pcapng"); err != nil {
         panic(err)
     } else {
 
