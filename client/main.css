@@ -4,18 +4,28 @@
 }
 .http-detail {
     width: 49%;
-    height: 200px;
+    height: 300px;
     border: 1px solid;
     overflow: scroll;
     display: block;
     font-family: 'Courier New', Courier, monospace;
 }
 table {
+    border-top: 1px solid;
+    border-bottom: 1px solid;
     font-family: 'Courier New', Courier, monospace;
     table-layout: fixed;
 }
+.body {
+    width: 100%;
+    word-break: break-all;
+}
+.break-all {
+    word-break: break-all;
+    overflow: auto
+}
 
-td {
+.requests td {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

@@ -40,6 +40,7 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
         }
         $scope.selectedRow = tr
         $(tr).attr("style", "background-color: lightgreen")
+        console.log(req.Response)
     }
     $scope.getHost = function(req) {
         for (var i = 0; i < req.Headers.length; ++i) {

@@ -164,11 +164,13 @@ func (s HttpStream) getHeader() (m HttpMessage, more bool) {
     return
 }
 
-func (s HttpStream) processChunked() bool {
+func (s HttpStream) processChunked() ([]byte, bool) {
+    var body []byte
     for {
         buf, err := s.reader.ReadUntil([]byte("\r\n"))
+        body = append(body, buf...)
         if err != nil {
-            return false
+            return body, false
         }
         l := string(buf)
         l = strings.Trim(l[:len(l)-2], " ")
@@ -179,12 +181,14 @@ func (s HttpStream) processChunked() bool {
         }
 
         buf, err = s.reader.Next(int(blockLength))
+        body = append(body, buf...)
         if err != nil {
-            return false
+            return body, false
         }
         buf, err = s.reader.Next(2)
+        body = append(body, buf...)
         if err != nil {
-            return false
+            return body, false
         }
         CRLF := string(buf)
         if CRLF != "\r\n" {
@@ -195,24 +199,19 @@ func (s HttpStream) processChunked() bool {
             break
         }
     }
-    return true
+    return body, true
 }
 
-func (f HttpStream) processContentLength(contentLength int) bool {
-    _, err := f.reader.Next(contentLength)
-    return err == nil
+func (f HttpStream) processContentLength(contentLength int) ([]byte, bool) {
+    body, err := f.reader.Next(contentLength)
+    return body, err == nil
 }
 
 func (f HttpStream) processBody(contentLength int, chunked bool) (body []byte, more bool) {
-    more = true
     if chunked {
-        if !f.processChunked() {
-            more = false
-        }
+        body, more = f.processChunked()
     } else {
-        if !f.processContentLength(contentLength) {
-            more = false
-        }
+        body, more = f.processContentLength(contentLength)
     }
     return
 }
@@ -260,10 +259,11 @@ func (s HttpStream) Process() {
             continue
         }
 
-        _, more = s.processBody(contentLength, chunked)
+        body, more := s.processBody(contentLength, chunked)
         if !more {
             break
         }
+        m.SetBody(string(body))
         m.SetEndTimestamp(s.reader.lastTimeStamp)
         s.eventChan <- m
         s.requestSeq++

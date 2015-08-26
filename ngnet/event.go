@@ -24,7 +24,7 @@ func (ne *NetEventBase) SetEndTimestamp(t float64) { ne.EndTimestamp = t }
 type HttpMessage interface {
     NetEvent
     SetVersion(string)
-    SetBody([]byte)
+    SetBody(string)
     AddHeader(HttpHeaderItem)
     Header() []HttpHeaderItem
 }
@@ -32,11 +32,12 @@ type HttpMessage interface {
 type HttpMessageBase struct {
     Version string
     Headers []HttpHeaderItem
-    Body    []byte
+    Body    string
 }
 
 func (hm *HttpMessageBase) SetVersion(v string)        { hm.Version = v }
-func (hm *HttpMessageBase) SetBody(body []byte)        { hm.Body = body }
+func (hm *HttpMessageBase) SetBody(body string)        { hm.Body = body }
+func (hm *HttpMessageBase) GetBody() string            { return hm.Body }
 func (hm *HttpMessageBase) AddHeader(h HttpHeaderItem) { hm.Headers = append(hm.Headers, h) }
 func (hm *HttpMessageBase) Header() []HttpHeaderItem   { return hm.Headers }
 

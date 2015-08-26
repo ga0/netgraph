@@ -37,27 +37,33 @@
                 <div id="request-first-line" class="first-line">
                     {{ selectedReq.Method }} {{ selectedReq.Uri }} {{ selectedReq.Version }}
                 </div>
-                <div id="request-head">
-                    <table>
+                <div id="request-head" class="head">
+                    <table width="100%">
                         <tr ng-repeat="h in selectedReq.Headers">
-                            <td>{{ h.Name }}</td>
-                            <td>{{ h.Value }}</td>
+                            <td width="30%">{{ h.Name }}</td>
+                            <td width="70%"><p class="break-all">{{ h.Value }}</p></td>
                         </tr>
                     </table>
                 </div>
+                <p id="request-body" class="body">
+                    {{ selectedReq.Body }}
+                </p>
             </div>
             <div id="response-detail" class="http-detail" style="float: right;">
                 <div id="response-first-line" class="first-line">
                     {{ selectedReq.Response.Version }} {{ selectedReq.Response.Code }} {{ selectedReq.Response.Reason }}
                 </div>
-                <div id="response-head">
-                    <table>
+                <div id="response-head" class="head">
+                    <table width="100%">
                         <tr ng-repeat="h in selectedReq.Response.Headers">
-                            <td>{{ h.Name }}</td>
-                            <td>{{ h.Value }}</td>
+                            <td width="30%">{{ h.Name }}</td>
+                            <td width="70%"><p class="break-all">{{ h.Value }}</p></td>
                         </tr>
                     </table>
                 </div>
+                <p id="response-body" class="body">
+                    {{ selectedReq.Response.Body }}
+                </p>
             </div>
         </div>
     </body>
