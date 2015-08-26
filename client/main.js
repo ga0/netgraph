@@ -80,14 +80,13 @@ app.factory('netdata', function($websocket) {
         }
         var stream = streams[e.StreamSeq];
         if (e.Type == "HttpRequest") {
-            console.log(e)
             stream.push(e);
             reqs.push(e);
         } else if (e.Type == "HttpResponse") {
             if (stream.length > 0) {
                 var req = stream[stream.length-1]
                 if (req.Response) {
-                    console.log("duplicate response in stream #" + e.StreamSeq + " uri:" + req.Uri
+                    console.error("duplicate response in stream #" + e.StreamSeq + " uri:" + req.Uri
                         + "\nold:", req.Response, "\nnew:", e)
                 } else {
                     req.Response = e;

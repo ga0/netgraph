@@ -42,7 +42,7 @@
                     </tr>
                 </thead>
                 <tr ng-repeat="req in reqs | reqFilter:filterType:pattern | orderBy:order:reverse" ng-click="showDetail($event, req)">
-                    <td>{{ req.Timestamp | number:3 }}</td>
+                    <td>{{ req.Timestamp - reqs[0].Timestamp | number:3 }}</td>
                     <td>{{ req.Duration | number:3}}</td>
                     <td>{{ req.StreamSeq }}</td>
                     <td>{{ req.Method }}</td>
