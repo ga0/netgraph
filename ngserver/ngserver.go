@@ -2,11 +2,13 @@ package ngserver
 
 import (
     "encoding/json"
+    "flag"
     "fmt"
-    //"github.com/ga0/ng/ngnet"
     "golang.org/x/net/websocket"
     "net/http"
 )
+
+var saveEvent = flag.Bool("s", true, "save network event locally")
 
 func init() {
 }
@@ -76,7 +78,9 @@ func (s *NGServer) webHandler(ws *websocket.Conn) {
 
 func (s *NGServer) DispatchEvent() {
     for ev := range s.eventChan {
-        s.eventBuffer = append(s.eventBuffer, ev)
+        if *saveEvent {
+            s.eventBuffer = append(s.eventBuffer, ev)
+        }
         for _, c := range s.connectedClient {
             c.eventChan <- ev
         }
