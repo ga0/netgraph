@@ -258,7 +258,7 @@ func (s HttpStream) Process() {
             break
         }
 
-        contentLength, chunked, cEncoding, cType := GetHttpSizeAndEncoding(m.Header())
+        contentLength, chunked, cEncoding, _ := GetHttpSizeAndEncoding(m.Header())
         if contentLength == 0 && !chunked {
             syncStreamPir(s)
             s.eventChan <- m
@@ -270,23 +270,23 @@ func (s HttpStream) Process() {
         if !more {
             break
         }
-        if strings.HasPrefix(cType, "text/") {
-            var uncompressedBody []byte
-            var err error
-            if cEncoding == "gzip" {
-                buffer := bytes.NewBuffer(body)
-                zipReader, _ := gzip.NewReader(buffer)
-                uncompressedBody, err = ioutil.ReadAll(zipReader)
-                defer zipReader.Close()
-                if err != nil {
-                    m.SetBody("gzip data uncompress error")
-                } else {
-                    m.SetBody(string(uncompressedBody))
-                }
+        //if strings.HasPrefix(cType, "text/") {
+        var uncompressedBody []byte
+        var err error
+        if cEncoding == "gzip" {
+            buffer := bytes.NewBuffer(body)
+            zipReader, _ := gzip.NewReader(buffer)
+            uncompressedBody, err = ioutil.ReadAll(zipReader)
+            defer zipReader.Close()
+            if err != nil {
+                m.SetBody("gzip data uncompress error")
+            } else {
+                m.SetBody(string(uncompressedBody))
             }
-        } else {
-            m.SetBody("binary data...")
         }
+        //} else {
+        //m.SetBody("binary data...")
+        //}
         m.SetEndTimestamp(s.reader.lastTimeStamp)
         syncStreamPir(s)
         s.eventChan <- m
