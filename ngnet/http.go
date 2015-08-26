@@ -2,10 +2,12 @@ package ngnet
 
 import (
     "bytes"
+    "compress/gzip"
     "errors"
     "fmt"
     "github.com/google/gopacket"
     "github.com/google/gopacket/tcpassembly"
+    "io/ioutil"
     "regexp"
     "strconv"
     "strings"
@@ -214,7 +216,7 @@ func (f HttpStream) processBody(contentLength int, chunked bool) (body []byte, m
     return
 }
 
-func GetHttpSize(hs []HttpHeaderItem) (contentLength int, chunked bool) {
+func GetHttpSizeAndEncoding(hs []HttpHeaderItem) (contentLength int, chunked bool, contentEncoding string, contentType string) {
     for _, h := range hs {
         if h.Name == "Content-Length" {
             var err error
@@ -224,6 +226,10 @@ func GetHttpSize(hs []HttpHeaderItem) (contentLength int, chunked bool) {
             }
         } else if h.Name == "Transfer-Encoding" && h.Value == "chunked" {
             chunked = true
+        } else if h.Name == "Content-Encoding" {
+            contentEncoding = h.Value
+        } else if h.Name == "Content-Type" {
+            contentType = h.Value
         }
     }
     return
@@ -252,7 +258,7 @@ func (s HttpStream) Process() {
             break
         }
 
-        contentLength, chunked := GetHttpSize(m.Header())
+        contentLength, chunked, cEncoding, cType := GetHttpSizeAndEncoding(m.Header())
         if contentLength == 0 && !chunked {
             syncStreamPir(s)
             s.eventChan <- m
@@ -264,7 +270,23 @@ func (s HttpStream) Process() {
         if !more {
             break
         }
-        m.SetBody(string(body))
+        if strings.HasPrefix(cType, "text/") {
+            var uncompressedBody []byte
+            var err error
+            if cEncoding == "gzip" {
+                buffer := bytes.NewBuffer(body)
+                zipReader, _ := gzip.NewReader(buffer)
+                uncompressedBody, err = ioutil.ReadAll(zipReader)
+                defer zipReader.Close()
+                if err != nil {
+                    m.SetBody("gzip data uncompress error")
+                } else {
+                    m.SetBody(string(uncompressedBody))
+                }
+            }
+        } else {
+            m.SetBody("binary data...")
+        }
         m.SetEndTimestamp(s.reader.lastTimeStamp)
         syncStreamPir(s)
         s.eventChan <- m
