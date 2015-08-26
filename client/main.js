@@ -120,6 +120,6 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
     }
     $scope.selectedRow = null;
     $scope.filterType = "Uri";
-    $scope.order = "Time";
+    $scope.order = "Timestamp";
     netdata.sync();
 })

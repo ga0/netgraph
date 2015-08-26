@@ -168,7 +168,6 @@ func (s HttpStream) processChunked() ([]byte, bool) {
     var body []byte
     for {
         buf, err := s.reader.ReadUntil([]byte("\r\n"))
-        body = append(body, buf...)
         if err != nil {
             return body, false
         }
@@ -186,7 +185,6 @@ func (s HttpStream) processChunked() ([]byte, bool) {
             return body, false
         }
         buf, err = s.reader.Next(2)
-        body = append(body, buf...)
         if err != nil {
             return body, false
         }
