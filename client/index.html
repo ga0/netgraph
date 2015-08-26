@@ -28,6 +28,7 @@
             <option value="StreamSeq">Stream</option>
             <option value="Uri">Uri</option>
         </select>
+        Reverse<input type="checkbox" ng-model="reverse"/>
         <div class="requests">
             <table width="100%">
                 <thead>
@@ -40,7 +41,7 @@
                     <th width="5%">Code</th>
                     </tr>
                 </thead>
-                <tr ng-repeat="req in reqs | reqFilter:filterType:pattern | orderBy:order" ng-click="showDetail($event, req)">
+                <tr ng-repeat="req in reqs | reqFilter:filterType:pattern | orderBy:order:reverse" ng-click="showDetail($event, req)">
                     <td>{{ req.Timestamp | number:3 }}</td>
                     <td>{{ req.Duration | number:3}}</td>
                     <td>{{ req.StreamSeq }}</td>
