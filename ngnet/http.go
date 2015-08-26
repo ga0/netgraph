@@ -283,6 +283,8 @@ func (s HttpStream) Process() {
             } else {
                 m.SetBody(string(uncompressedBody))
             }
+        } else {
+            m.SetBody(string(body))
         }
         //} else {
         //m.SetBody("binary data...")

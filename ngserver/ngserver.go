@@ -3,7 +3,7 @@ package ngserver
 import (
     "encoding/json"
     "flag"
-    "fmt"
+    //"fmt"
     "golang.org/x/net/websocket"
     "net/http"
 )
@@ -27,7 +27,6 @@ func (c *NGClient) RecvAndProcessCommand() {
             return
         }
         if len(msg) > 0 {
-            fmt.Println("Cmd: " + msg)
             if msg == "sync" {
                 c.server.Sync(c)
             }
@@ -38,7 +37,6 @@ func (c *NGClient) RecvAndProcessCommand() {
 }
 
 func (c *NGClient) TransmitEvents() {
-    defer fmt.Println("Transmit exit")
     for ev := range c.eventChan {
         json, err := json.Marshal(ev)
         if err == nil {
@@ -85,11 +83,9 @@ func (s *NGServer) DispatchEvent() {
             c.eventChan <- ev
         }
     }
-    fmt.Println("Done")
 }
 
 func (s *NGServer) Sync(c *NGClient) {
-    fmt.Println("Sync", c.ws.RemoteAddr(), "Event count: ", len(s.eventBuffer))
     for _, ev := range s.eventBuffer {
         c.eventChan <- ev
     }
@@ -100,7 +96,6 @@ func (s *NGServer) Serve() {
     http.Handle("/data", websocket.Handler(s.webHandler))
     fs := http.FileServer(http.Dir(s.staticFileDir))
     http.Handle("/", fs)
-    fmt.Println("Server runs")
     http.ListenAndServe(s.addr, nil)
 }
 

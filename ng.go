@@ -91,7 +91,6 @@ func main() {
 
     go runNGNet(packetSource())
     addr := fmt.Sprintf(":%d", *bindingPort)
-    fmt.Println(addr)
     s := ngserver.NewNGServer(addr, "client", eventChan)
     s.Serve()
 }
