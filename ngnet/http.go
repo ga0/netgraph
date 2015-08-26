@@ -229,6 +229,14 @@ func GetHttpSize(hs []HttpHeaderItem) (contentLength int, chunked bool) {
     return
 }
 
+func syncStreamPir(s HttpStream) {
+    if s.direction == DownDirection {
+        <-s.sem
+    } else if s.direction == UpDirection {
+        s.sem <- 1
+    }
+}
+
 func (s HttpStream) Process() {
     defer func() {
         if r := recover(); r != nil {
@@ -239,12 +247,6 @@ func (s HttpStream) Process() {
     }()
     defer s.wg.Done()
     for {
-        if s.direction == DownDirection {
-            <-s.sem
-        } else if s.direction == UpDirection {
-            s.sem <- 1
-        }
-
         m, more := s.getHeader()
         if !more {
             break
@@ -252,6 +254,7 @@ func (s HttpStream) Process() {
 
         contentLength, chunked := GetHttpSize(m.Header())
         if contentLength == 0 && !chunked {
+            syncStreamPir(s)
             s.eventChan <- m
             s.requestSeq++
             continue
@@ -263,6 +266,7 @@ func (s HttpStream) Process() {
         }
         m.SetBody(string(body))
         m.SetEndTimestamp(s.reader.lastTimeStamp)
+        syncStreamPir(s)
         s.eventChan <- m
         s.requestSeq++
     }

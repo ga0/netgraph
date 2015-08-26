@@ -85,7 +85,13 @@ app.factory('netdata', function($websocket) {
             reqs.push(e);
         } else if (e.Type == "HttpResponse") {
             if (stream.length > 0) {
-                stream[stream.length-1].Response = e;
+                var req = stream[stream.length-1]
+                if (req.Response) {
+                    console.log("duplicate response in stream #" + e.StreamSeq + " uri:" + req.Uri
+                        + "\nold:", req.Response, "\nnew:", e)
+                } else {
+                    req.Response = e;
+                }
             }
         }
     });

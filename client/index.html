@@ -40,7 +40,7 @@
                 </thead>
                 <tr ng-repeat="req in reqs | reqFilter:filterType:pattern | orderBy:order" ng-click="showDetail($event, req)">
                     <td>{{ req.Timestamp }}</td>
-                    <td>{{ req.StreamSeq }}<span style="color:red" ng-if="!req.Response">*</span></td>
+                    <td>{{ req.StreamSeq }}</td>
                     <td>{{ req.Method }}</td>
                     <td><a href="http://{{getHost(req)}}{{req.Uri}}" target="_blank">{{ req.Uri }}</a></td>
                     <td>{{ req.Response.Code }}</td>
