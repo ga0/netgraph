@@ -9,26 +9,41 @@
         <link href="/main.css" rel="stylesheet">
     </head>
     <body>
-        <h1>NetGraph</h1>
+        <h2>NetGraph</h2>
+        Filter: 
+        <select ng-model="filterType">
+            <option value="Uri">Uri</option>
+            <option value="Cookie">Cookie</option>
+            <option value="Code">Code</option>
+            <option value="RequestHeader">Request Header</option>
+            <option value="ResponseHeader">Response Header</option>
+            <option value="RequestBody">Request Body</option>
+            <option value="ResponseBody">Response Body</option>
+        </select>
+        <input ng-model="pattern">
+        Sorted by:
+        <select ng-model="order">
+            <option value="Timestamp">Time</option>
+            <option value="StreamSeq">Stream</option>
+            <option value="Uri">Uri</option>
+        </select>
         <div class="requests">
             <table width="100%">
                 <thead>
                     <tr>
-                    <th width="5%">Stream</th>
                     <th width="5%">Time</th>
-                    <th width="10%">Method</th>
-                    <th width="60%">Uri</th>
-                    <th width="10%">Code</th>
-                    <th width="10%">Reason</th>
+                    <th width="5%">Stream</th>
+                    <th width="5%">Method</th>
+                    <th width="80%">Uri</th>
+                    <th width="5%">Code</th>
                     </tr>
                 </thead>
-                <tr ng-repeat="req in reqs" ng-click="showDetail($event, req)">
-                    <td><span style="color:red" ng-if="!req.Response">*</span>{{ req.StreamSeq }}</td>
+                <tr ng-repeat="req in reqs | reqFilter:filterType:pattern | orderBy:order" ng-click="showDetail($event, req)">
                     <td>{{ req.Timestamp }}</td>
+                    <td>{{ req.StreamSeq }}<span style="color:red" ng-if="!req.Response">*</span></td>
                     <td>{{ req.Method }}</td>
                     <td><a href="http://{{getHost(req)}}{{req.Uri}}" target="_blank">{{ req.Uri }}</a></td>
                     <td>{{ req.Response.Code }}</td>
-                    <td>{{ req.Response.Reason }}</td>
                 </tr>
             </table>
         </div>
