@@ -26,8 +26,8 @@ var (
 )
 
 func init() {
-    httpRequestFirtLine = regexp.MustCompile("([A-Z]*) (.*) (.*)")
-    httpResponseFirtLine = regexp.MustCompile("(.*) (\\d*) (.*)")
+    httpRequestFirtLine = regexp.MustCompile("([A-Z]+) (.+) (.+)")
+    httpResponseFirtLine = regexp.MustCompile("(.+) (\\d{3}) (.+)")
 }
 
 type Packet struct {

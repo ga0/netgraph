@@ -79,8 +79,8 @@ app.factory('netdata', function($websocket) {
             streams[e.StreamSeq] = [];
         }
         var stream = streams[e.StreamSeq];
-        e.Timestamp = e.Timestamp.toFixed(3);
         if (e.Type == "HttpRequest") {
+            console.log(e)
             stream.push(e);
             reqs.push(e);
         } else if (e.Type == "HttpResponse") {
@@ -91,6 +91,7 @@ app.factory('netdata', function($websocket) {
                         + "\nold:", req.Response, "\nnew:", e)
                 } else {
                     req.Response = e;
+                    req.Duration = e.EndTimestamp - req.Timestamp
                 }
             }
         }
