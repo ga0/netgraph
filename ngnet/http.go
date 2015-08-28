@@ -22,6 +22,15 @@ const (
     DownDirection Direction = 2
 )
 
+func (d Direction) String() string {
+    if d == UpDirection {
+        return "->"
+    } else if d == DownDirection {
+        return "<-"
+    }
+    return "?"
+}
+
 var (
     httpRequestFirtLine  *regexp.Regexp
     httpResponseFirtLine *regexp.Regexp
@@ -247,8 +256,7 @@ func (s HttpStream) Process() {
     defer func() {
         if r := recover(); r != nil {
             *s.bad = true
-            //close(s.reader.src)
-            fmt.Println("HttpStream error: ", r)
+            fmt.Printf("HttpStream (#%d %s) error: %v\n", s.streamSeq, s.direction, r)
         }
     }()
     defer s.wg.Done()
@@ -313,6 +321,16 @@ func (s HttpStream) Reassembled(rs []tcpassembly.Reassembly) {
         if *s.bad {
             break
         }
+        if r.Skip > 0 {
+            fmt.Printf("HttpStream (#%d %s) skiped %d\n", s.streamSeq, s.direction, r.Skip)
+        }
+        /*if s.streamSeq == 284 {
+            fmt.Println("*****")
+            fmt.Println(r)
+            fmt.Println(string(r.Bytes))
+            p := bytes.Index(r.Bytes, []byte("\r\n\r\n"))
+            fmt.Println(">", len(r.Bytes)-(p+4))
+        }*/
         s.reader.src <- r
     }
 }
@@ -361,7 +379,7 @@ func (f HttpStreamFactory) New(netFlow, tcpFlow gopacket.Flow) (ret tcpassembly.
     src := make(PacketSource)
     if ok {
         if streamPair.upStream == nil {
-            panic("fuck")
+            panic("unbelievable!?")
         }
         delete(*f.uniStreams, revkey)
         s := NewHttpStream(src, "", streamPair.connSeq, f.wg, *f.eventChan, streamPair.sem, DownDirection)
@@ -381,7 +399,6 @@ func (f HttpStreamFactory) New(netFlow, tcpFlow gopacket.Flow) (ret tcpassembly.
         streamPair.upStream = &s
         (*f.uniStreams)[key] = streamPair
         *f.seq++
-        //fmt.Printf("#%d Connect %s\n", streamPair.connSeq, key)
         go s.Process()
         ret = s
     }

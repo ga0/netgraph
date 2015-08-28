@@ -3,12 +3,11 @@ package ngserver
 import (
     "encoding/json"
     "flag"
-    //"fmt"
     "golang.org/x/net/websocket"
     "net/http"
 )
 
-var saveEvent = flag.Bool("s", true, "save network event locally")
+var saveEvent = flag.Bool("s", false, "save network event locally")
 
 func init() {
 }
