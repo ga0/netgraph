@@ -3,8 +3,8 @@ package main
 import (
     "flag"
     "fmt"
-    "github.com/ga0/ng/ngnet"
-    "github.com/ga0/ng/ngserver"
+    "github.com/ga0/netgraph/ngnet"
+    "github.com/ga0/netgraph/ngserver"
     "github.com/google/gopacket"
     "github.com/google/gopacket/layers"
     "github.com/google/gopacket/pcap"
