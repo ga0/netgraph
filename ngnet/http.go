@@ -140,7 +140,7 @@ func (s HttpStream) getHeader() (m HttpMessage, more bool) {
                 if len(r) != 4 {
                     panic("Bad HTTP Response: \n" + line)
                 }
-                e := NewHttpResponseEvent()
+                e := new(HttpResponseEvent)
                 e.Type = "HttpResponse"
                 e.Version = r[1]
                 e.Code = r[2]
@@ -151,7 +151,7 @@ func (s HttpStream) getHeader() (m HttpMessage, more bool) {
                 if len(r) != 4 {
                     panic("Bad HTTP Request: \n" + line)
                 }
-                e := NewHttpRequestEvent()
+                e := new(HttpRequestEvent)
                 e.Type = "HttpRequest"
                 e.Method = r[1]
                 e.Uri = r[2]

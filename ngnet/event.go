@@ -30,6 +30,7 @@ type HttpMessage interface {
 }
 
 type HttpMessageBase struct {
+    NetEventBase
     Version string
     Headers []HttpHeaderItem
     Body    string
@@ -47,27 +48,13 @@ type HttpHeaderItem struct {
 }
 
 type HttpRequestEvent struct {
-    *NetEventBase
-    *HttpMessageBase
+    HttpMessageBase
     Method string
     Uri    string
 }
 
-func NewHttpRequestEvent() (e HttpRequestEvent) {
-    e.NetEventBase = new(NetEventBase)
-    e.HttpMessageBase = new(HttpMessageBase)
-    return
-}
-
 type HttpResponseEvent struct {
-    *NetEventBase
-    *HttpMessageBase
+    HttpMessageBase
     Code   string
     Reason string
-}
-
-func NewHttpResponseEvent() (e HttpResponseEvent) {
-    e.NetEventBase = new(NetEventBase)
-    e.HttpMessageBase = new(HttpMessageBase)
-    return
 }
