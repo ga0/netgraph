@@ -3,7 +3,7 @@ Capture and analyze http and tcp streams
 
 一个B/S架构的HTTP抓包工具。
 依赖 github.com/google/gopacket.
-
+![截图](https://raw.githubusercontent.com/ga0/netgraph/master/screenshot.png)
 
 # 选项
     -bpf string
