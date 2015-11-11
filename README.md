@@ -6,14 +6,14 @@ Capture and analyze http and tcp streams
 
 
 # 选项
-  -bpf string
-        Berkeley Packet Filter (default "tcp port 80")
-  -f string
-        Open pcap file
-  -i string
-        Device to capture, auto select one if no device provided
-  -o string
-        Output captured packet to pcap file
-  -p int
-        Web server port (default 9000)
-  -s    save network event in server
+    -bpf string
+          Berkeley Packet Filter (default "tcp port 80")
+    -f string
+          Open pcap file
+    -i string
+          Device to capture, auto select one if no device provided
+    -o string
+          Output captured packet to pcap file
+    -p int
+          Web server port (default 9000)
+    -s    save network event in server
