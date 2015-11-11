@@ -7,7 +7,7 @@ import (
     "net/http"
 )
 
-var saveEvent = flag.Bool("s", false, "save network event locally")
+var saveEvent = flag.Bool("s", false, "save network event in server")
 
 func init() {
 }
