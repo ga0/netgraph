@@ -3,6 +3,7 @@ package ngserver
 import (
     "encoding/json"
     "flag"
+    "fmt"
     "golang.org/x/net/websocket"
     "net/http"
 )
@@ -95,7 +96,10 @@ func (s *NGServer) Serve() {
     http.Handle("/data", websocket.Handler(s.webHandler))
     fs := http.FileServer(http.Dir(s.staticFileDir))
     http.Handle("/", fs)
-    http.ListenAndServe(s.addr, nil)
+    err := http.ListenAndServe(s.addr, nil)
+    if err != nil {
+        fmt.Println(err)
+    }
 }
 
 func NewNGServer(addr string, staticFileDir string, eventChan chan interface{}) *NGServer {
