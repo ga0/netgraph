@@ -1,9 +1,9 @@
 # netgraph
 Capture and analyze http and tcp streams
 
-一个B/S架构的HTTP抓包工具。  
-抓包和组包使用 github.com/google/gopacket  
-前后端通信使用 golang.org/x/net/websocket  
+一个B/S架构的HTTP抓包工具。
+抓包和组包使用 github.com/google/gopacket
+前后端通信使用 golang.org/x/net/websocket
 
 ![截图](https://raw.githubusercontent.com/ga0/netgraph/master/screenshot.png)
 
@@ -31,5 +31,8 @@ Capture and analyze http and tcp streams
     -s    save network event in server
 
 ## 说明
+
+This project is licensed under the terms of the MIT license.
+
 有任何疑问请及时联系我，期待您的反馈。
 
