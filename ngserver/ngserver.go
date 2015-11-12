@@ -3,8 +3,8 @@ package ngserver
 import (
     "encoding/json"
     "flag"
-    "fmt"
     "golang.org/x/net/websocket"
+    "log"
     "net/http"
 )
 
@@ -98,7 +98,7 @@ func (s *NGServer) Serve() {
     http.Handle("/", fs)
     err := http.ListenAndServe(s.addr, nil)
     if err != nil {
-        fmt.Println(err)
+        log.Fatalln(err)
     }
 }
 

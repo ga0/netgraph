@@ -10,6 +10,7 @@ import (
     "github.com/google/gopacket/pcap"
     "github.com/google/gopacket/pcapgo"
     "github.com/google/gopacket/tcpassembly"
+    "log"
     "os"
 )
 
@@ -23,12 +24,10 @@ var outputPcap = flag.String("o", "", "Output captured packet to pcap file")
 func init() {
     flag.Parse()
     if *inputPcap != "" && *outputPcap != "" {
-        fmt.Println("set -f and -o at the same time")
-        os.Exit(-1)
+        log.Fatalln("set -f and -o at the same time")
     }
     if *inputPcap != "" && *device != "" {
-        fmt.Println("set -f and -i at the same time")
-        os.Exit(-1)
+        log.Fatalln("set -f and -i at the same time")
     }
     eventChan = make(chan interface{}, 1024)
 }
@@ -36,19 +35,9 @@ func init() {
 func autoSelectDev() string {
     ifs, err := pcap.FindAllDevs()
     if err != nil {
-        fmt.Println(err)
-        os.Exit(-1)
+        log.Fatalln(err)
     }
-    /*fmt.Println("Auto select interface...")
-      fmt.Println("[All interfaces]")
-      for _, i := range ifs {
-          fmt.Println(i.Name)
-          for _, addr := range i.Addresses {
-              fmt.Printf("    %s\n", addr.IP.String())
-          }
-      }*/
     var available []string
-    //fmt.Println("[Available]")
     for _, i := range ifs {
         addrFound := false
         var addrs []string
@@ -64,10 +53,6 @@ func autoSelectDev() string {
         }
         if addrFound {
             available = append(available, i.Name)
-            /*fmt.Println(i.Name)
-              for _, addr := range addrs {
-                  fmt.Printf("    %s\n", addr)
-              }*/
         }
     }
     if len(available) > 0 {
@@ -80,8 +65,7 @@ func packetSource() *gopacket.PacketSource {
     if *inputPcap != "" {
         handle, err := pcap.OpenOffline(*inputPcap)
         if err != nil {
-            fmt.Println(err)
-            os.Exit(-1)
+            log.Fatalln(err)
         }
         fmt.Printf("open pcap file \"%s\"\n", *inputPcap)
         return gopacket.NewPacketSource(handle, handle.LinkType())
@@ -90,20 +74,17 @@ func packetSource() *gopacket.PacketSource {
     if *device == "" {
         *device = autoSelectDev()
         if *device == "" {
-            fmt.Println("no packet to capture")
-            os.Exit(-1)
+            log.Fatalln("no packet to capture")
         }
     }
 
     handle, err := pcap.OpenLive(*device, 1024*1024, true, pcap.BlockForever)
     if err != nil {
-        fmt.Println(err)
-        os.Exit(-1)
+        log.Fatalln(err)
     }
     if *bpf != "" {
         if err = handle.SetBPFFilter(*bpf); err != nil {
-            fmt.Println("Failed to set BPF filter:", err)
-            os.Exit(-1)
+            log.Fatalln("Failed to set BPF filter:", err)
         }
     }
     fmt.Printf("open live on device \"%s\", bpf \"%s\"\n", *device, *bpf)
@@ -119,8 +100,7 @@ func runNGNet(packetSource *gopacket.PacketSource) {
     if *outputPcap != "" {
         outPcapFile, err := os.Create(*outputPcap)
         if err != nil {
-            fmt.Println(err)
-            os.Exit(-1)
+            log.Fatalln(err)
         }
         defer outPcapFile.Close()
         pcapWriter = pcapgo.NewWriter(outPcapFile)
@@ -155,7 +135,7 @@ func runNGNet(packetSource *gopacket.PacketSource) {
 
     assembler.FlushAll()
     streamFactory.Wait()
-    fmt.Println("Packet count: ", count)
+    log.Println("Packet count: ", count)
 }
 
 func main() {

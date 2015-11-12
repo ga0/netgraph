@@ -324,13 +324,6 @@ func (s HttpStream) Reassembled(rs []tcpassembly.Reassembly) {
         if r.Skip > 0 {
             fmt.Printf("HttpStream (#%d %s) skiped %d\n", s.streamSeq, s.direction, r.Skip)
         }
-        /*if s.streamSeq == 284 {
-            fmt.Println("*****")
-            fmt.Println(r)
-            fmt.Println(string(r.Bytes))
-            p := bytes.Index(r.Bytes, []byte("\r\n\r\n"))
-            fmt.Println(">", len(r.Bytes)-(p+4))
-        }*/
         s.reader.src <- r
     }
 }
