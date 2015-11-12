@@ -87,7 +87,7 @@ func packetSource() *gopacket.PacketSource {
             log.Fatalln("Failed to set BPF filter:", err)
         }
     }
-    fmt.Printf("open live on device \"%s\", bpf \"%s\"\n", *device, *bpf)
+    fmt.Printf("open live on device \"%s\", bpf \"%s\", serves on port %d\n", *device, *bpf, *bindingPort)
     return gopacket.NewPacketSource(handle, handle.LinkType())
 }
 
