@@ -12,8 +12,15 @@ Capture and analyze http and tcp streams
 ## 编译,安装,运行
 
       1. go get github.com/ga0/netgraph
-      2. 执行 ./netgraph -e 网卡名称(比如eth0) -p 服务器端口(默认9000)
+      2. 执行 $GOPATH/bin/netgraph -e 网卡名称(比如eth0) -p 服务器端口(默认9000)
       3. 用浏览器打开运行 netgraph 的服务器地址(比如 http://localhost:9000)
+
+windows下需要先安装winpcap库。
+
+如果你修改过client下的前端文件：
+      1. 在源码根目录下执行 go generate
+      2. go build
+      3. 运行 netgraph
 
 ## 选项
     -bpf string
