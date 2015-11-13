@@ -18,6 +18,7 @@ Capture and analyze http and tcp streams
 windows下需要先安装winpcap库。
 
 如果你修改过client下的前端文件：
+
       1. 在源码根目录下执行 go generate
       2. go build
       3. 运行 netgraph
