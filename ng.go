@@ -74,7 +74,7 @@ func packetSource() *gopacket.PacketSource {
     if *device == "" {
         *device = autoSelectDev()
         if *device == "" {
-            log.Fatalln("no packet to capture")
+            log.Fatalln("no device to capture")
         }
     }
 
@@ -138,9 +138,14 @@ func runNGNet(packetSource *gopacket.PacketSource) {
     log.Println("Packet count: ", count)
 }
 
+/*
+   create client.go
+*/
+//go:generate python embed_html.py
+
 func main() {
     go runNGNet(packetSource())
     addr := fmt.Sprintf(":%d", *bindingPort)
-    s := ngserver.NewNGServer(addr, "client", eventChan)
+    s := ngserver.NewNGServer(addr, eventChan)
     s.Serve()
 }

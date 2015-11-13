@@ -1,17 +1,24 @@
+/*
+   package ngserver get the captured http data from ngnet,
+   and send these data to frontend by websocket.
+
+           chan                    +-----NGClient
+   ngnet----------NGServer---------+-----NGClient
+                                   +-----NGClient
+*/
 package ngserver
 
 import (
     "encoding/json"
     "flag"
+    "github.com/ga0/netgraph/client"
     "golang.org/x/net/websocket"
     "log"
     "net/http"
+    "os"
 )
 
 var saveEvent = flag.Bool("s", false, "save network event in server")
-
-func init() {
-}
 
 type NGClient struct {
     eventChan chan interface{}
@@ -65,7 +72,7 @@ type NGServer struct {
     eventBuffer     []interface{}
 }
 
-func (s *NGServer) webHandler(ws *websocket.Conn) {
+func (s *NGServer) websocketHandler(ws *websocket.Conn) {
     c := NewNGClient(ws, s)
     s.connectedClient[ws] = c
     go c.TransmitEvents()
@@ -74,6 +81,9 @@ func (s *NGServer) webHandler(ws *websocket.Conn) {
     delete(s.connectedClient, ws)
 }
 
+/*
+   Dispatch the event received from ngnet to all clients connected with websocket.
+*/
 func (s *NGServer) DispatchEvent() {
     for ev := range s.eventChan {
         if *saveEvent {
@@ -85,28 +95,60 @@ func (s *NGServer) DispatchEvent() {
     }
 }
 
+/*
+   If the flag '-s' is set and the browser sent a 'sync' command,
+   the NGServer will push all the http message buffered in eventBuffer to
+   the client.
+*/
 func (s *NGServer) Sync(c *NGClient) {
     for _, ev := range s.eventBuffer {
         c.eventChan <- ev
     }
 }
 
+/*
+   Handle static files (.html, .js, .css).
+*/
+func (s *NGServer) handleStaticFile(w http.ResponseWriter, r *http.Request) {
+    uri := r.RequestURI
+    if uri == "/" {
+        uri = "/index.html"
+    }
+    c, err := client.GetContent(uri)
+    if err != nil {
+        log.Println(r.RequestURI)
+        http.NotFound(w, r)
+        return
+    }
+    w.Write([]byte(c))
+}
+
 func (s *NGServer) Serve() {
     go s.DispatchEvent()
-    http.Handle("/data", websocket.Handler(s.webHandler))
-    fs := http.FileServer(http.Dir(s.staticFileDir))
-    http.Handle("/", fs)
-    err := http.ListenAndServe(s.addr, nil)
+    http.Handle("/data", websocket.Handler(s.websocketHandler))
+
+    /*
+       If './client' directory exists, create a FileServer with it,
+       otherwise we use package client.
+    */
+    _, err := os.Stat("client")
+    if err == nil {
+        fs := http.FileServer(http.Dir("client"))
+        http.Handle("/", fs)
+    } else {
+        http.HandleFunc("/", s.handleStaticFile)
+    }
+
+    err = http.ListenAndServe(s.addr, nil)
     if err != nil {
         log.Fatalln(err)
     }
 }
 
-func NewNGServer(addr string, staticFileDir string, eventChan chan interface{}) *NGServer {
+func NewNGServer(addr string, eventChan chan interface{}) *NGServer {
     s := new(NGServer)
     s.eventChan = eventChan
     s.addr = addr
-    s.staticFileDir = staticFileDir
     s.connectedClient = make(map[*websocket.Conn]*NGClient)
     return s
 }

@@ -1,8 +1,8 @@
 # netgraph
 Capture and analyze http and tcp streams
 
-一个B/S架构的HTTP抓包工具。
-抓包和组包使用 github.com/google/gopacket
+一个B/S架构的HTTP抓包工具。  
+抓包和组包使用 github.com/google/gopacket  
 前后端通信使用 golang.org/x/net/websocket
 
 ![截图](https://raw.githubusercontent.com/ga0/netgraph/master/screenshot.png)
@@ -12,10 +12,8 @@ Capture and analyze http and tcp streams
 ## 编译,安装,运行
 
       1. go get github.com/ga0/netgraph
-      2. 进入 netgraph 项目的根目录(netgraph会从client中取前端页面);
-      3. 执行 go build
-      4. 执行 ./netgraph -e 网卡名称(比如eth0) -p 服务器端口(默认9000);
-      5. 用浏览器打开运行 netgraph 的服务器地址（比如 http://localhost:9000）。
+      2. 执行 ./netgraph -e 网卡名称(比如eth0) -p 服务器端口(默认9000)
+      3. 用浏览器打开运行 netgraph 的服务器地址(比如 http://localhost:9000)
 
 ## 选项
     -bpf string

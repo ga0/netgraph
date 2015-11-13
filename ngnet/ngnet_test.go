@@ -19,7 +19,6 @@ func TestNgnet(t *testing.T) {
     if handle, err := pcap.OpenOffline("dump.pcapng"); err != nil {
         panic(err)
     } else {
-
         packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
         for packet := range packetSource.Packets() {
             net_layer := packet.NetworkLayer()
