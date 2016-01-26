@@ -3,7 +3,7 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
         var result = [];
         if (!filterType || !pattern)
             return items;
-        
+
         function getMatchFunction() {
             if (filterType == "Uri") {
                 return function(item) {
@@ -82,6 +82,14 @@ app.factory('netdata', function($websocket) {
         if (e.Type == "HttpRequest") {
             stream.push(e);
             reqs.push(e);
+            //add Host
+            for (var i = 0; i < e.Headers.length; ++i) {
+                var h = e.Headers[i];
+                if (h.Name == 'Host') {
+                    e.Host = h.Value;
+                    break;
+                }
+            }
         } else if (e.Type == "HttpResponse") {
             if (stream.length > 0) {
                 var req = stream[stream.length-1]

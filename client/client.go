@@ -27,6 +27,7 @@ var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
         Sorted by:
         <select ng-model="order">
             <option value="Timestamp">Time</option>
+            <option value="Host">Host</option>
             <option value="Duration">Duration</option>
             <option value="StreamSeq">Stream</option>
             <option value="Uri">Uri</option>
@@ -37,10 +38,11 @@ var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
                 <thead>
                     <tr>
                     <th width="5%">Time</th>
-                    <th width="10%">Duration</th>
+                    <th width="7%">Duration</th>
                     <th width="5%">Stream</th>
+                    <th width="15%">Domain</th>
                     <th width="5%">Method</th>
-                    <th width="70%">Uri</th>
+                    <th width="58%">Uri</th>
                     <th width="5%">Code</th>
                     </tr>
                 </thead>
@@ -48,6 +50,7 @@ var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
                     <td>{{ req.Timestamp - reqs[0].Timestamp | number:3 }}</td>
                     <td>{{ req.Duration | number:3}}</td>
                     <td>{{ req.StreamSeq }}</td>
+                    <td>{{ req.Host }}</td>
                     <td>{{ req.Method }}</td>
                     <td><a href="http://{{getHost(req)}}{{req.Uri}}" target="_blank">{{ req.Uri }}</a></td>
                     <td>{{ req.Response.Code }}</td>
@@ -143,7 +146,7 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
         var result = [];
         if (!filterType || !pattern)
             return items;
-        
+
         function getMatchFunction() {
             if (filterType == "Uri") {
                 return function(item) {
@@ -222,6 +225,14 @@ app.factory('netdata', function($websocket) {
         if (e.Type == "HttpRequest") {
             stream.push(e);
             reqs.push(e);
+            //add Host
+            for (var i = 0; i < e.Headers.length; ++i) {
+                var h = e.Headers[i];
+                if (h.Name == 'Host') {
+                    e.Host = h.Value;
+                    break;
+                }
+            }
         } else if (e.Type == "HttpResponse") {
             if (stream.length > 0) {
                 var req = stream[stream.length-1]
@@ -974,13 +985,13 @@ type contentIndexStruct struct {
     begin int
     end int
 }
-var contentIndex = map[string]contentIndexStruct{"/lib/jquery-1.9.1.min.js":{169065,261694},
-"/index.html":{0,4053},
-"/lib/angular.min.js":{22006,169065},
-"/lib/snap.svg-min.js":{261694,338367},
-"/main.js":{4913,9672},
-"/main.css":{4053,4913},
-"/lib/angular-websocket.js":{9672,22006},
+var contentIndex = map[string]contentIndexStruct{"/lib/jquery-1.9.1.min.js":{169450,262079},
+"/index.html":{0,4191},
+"/lib/angular.min.js":{22391,169450},
+"/lib/snap.svg-min.js":{262079,338752},
+"/main.js":{5051,10057},
+"/main.css":{4191,5051},
+"/lib/angular-websocket.js":{10057,22391},
 }
 func GetContent(uri string) ([]byte, error) {
     if val, ok := contentIndex[uri]; ok {
