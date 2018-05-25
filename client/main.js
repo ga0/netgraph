@@ -79,7 +79,8 @@ app.factory('netdata', function($websocket) {
             streams[e.StreamSeq] = [];
         }
         var stream = streams[e.StreamSeq];
-        if (e.Type == "HttpRequest") {
+        if (e.Type == "HTTPRequest") {
+            e.Body = atob(e.Body)
             stream.push(e);
             reqs.push(e);
             //add Host
@@ -90,7 +91,8 @@ app.factory('netdata', function($websocket) {
                     break;
                 }
             }
-        } else if (e.Type == "HttpResponse") {
+        } else if (e.Type == "HTTPResponse") {
+            e.Body = atob(e.Body)
             if (stream.length > 0) {
                 var req = stream[stream.length-1]
                 if (req.Response) {
@@ -98,7 +100,7 @@ app.factory('netdata', function($websocket) {
                         + "\nold:", req.Response, "\nnew:", e)
                 } else {
                     req.Response = e;
-                    req.Duration = e.EndTimestamp - req.Timestamp
+                    req.Duration = e.End - req.Start
                 }
             }
         }
@@ -134,6 +136,6 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
     }
     $scope.selectedRow = null;
     $scope.filterType = "Uri";
-    $scope.order = "Timestamp";
+    $scope.order = "Start";
     netdata.sync();
 })
