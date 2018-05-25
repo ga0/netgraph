@@ -12,7 +12,7 @@
         <h2>NetGraph</h2>
         Filter:
         <select ng-model="filterType">
-            <option value="Uri">Uri</option>
+            <option value="URI">URI</option>
             <option value="Cookie">Cookie</option>
             <option value="Code">Code</option>
             <option value="RequestHeader">Request Header</option>
@@ -27,7 +27,7 @@
             <option value="Host">Host</option>
             <option value="Duration">Duration</option>
             <option value="StreamSeq">Stream</option>
-            <option value="Uri">Uri</option>
+            <option value="URI">URI</option>
         </select>
         Reverse<input type="checkbox" ng-model="reverse"/>
         <div class="requests">
@@ -39,7 +39,7 @@
                     <th width="5%">Stream</th>
                     <th width="15%">Domain</th>
                     <th width="5%">Method</th>
-                    <th width="58%">Uri</th>
+                    <th width="58%">URI</th>
                     <th width="5%">Code</th>
                     </tr>
                 </thead>
@@ -49,7 +49,7 @@
                     <td>{{ req.StreamSeq }}</td>
                     <td>{{ req.Host }}</td>
                     <td>{{ req.Method }}</td>
-                    <td><a href="http://{{getHost(req)}}{{req.Uri}}" target="_blank">{{ req.Uri }}</a></td>
+                    <td><a href="http://{{getHost(req)}}{{req.URI}}" target="_blank">{{ req.URI }}</a></td>
                     <td>{{ req.Response.Code }}</td>
                 </tr>
             </table>
@@ -57,7 +57,7 @@
         <div id="detail" style="width:100%">
             <div id="request-detail" class="http-detail" style="float: left;">
                 <div id="request-first-line" class="first-line">
-                    {{ selectedReq.Method }} {{ selectedReq.Uri }} {{ selectedReq.Version }}
+                    {{ selectedReq.Method }} {{ selectedReq.URI }} {{ selectedReq.Version }}
                 </div>
                 <div id="request-head" class="head">
                     <table width="100%">

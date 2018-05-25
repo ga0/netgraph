@@ -5,40 +5,30 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/google/gopacket"
 	"github.com/google/gopacket/tcpassembly"
 )
 
-type HTTPHeaderItem struct {
-	Name  string
-	Value string
+var (
+	httpRequestFirtLine  *regexp.Regexp
+	httpResponseFirtLine *regexp.Regexp
+)
+
+func init() {
+	httpRequestFirtLine = regexp.MustCompile("([A-Z]+) (.+) (HTTP/.+)")
+	httpResponseFirtLine = regexp.MustCompile("(HTTP/.+) (\\d{3}) (.+)")
 }
 
-type HTTPEvent struct {
-	Type      string
-	Start     float64
-	End       float64
-	StreamSeq uint
+type streamKey struct {
+	net, tcp gopacket.Flow
 }
 
-type HTTPRequestEvent struct {
-	HTTPEvent
-	Method  string
-	Uri     string
-	Version string
-	Headers []HTTPHeaderItem
-	Body    []byte
-}
-
-type HTTPResponseEvent struct {
-	HTTPEvent
-	Version string
-	Code    uint
-	Reason  string
-	Headers []HTTPHeaderItem
-	Body    []byte
+func (k *streamKey) String() string {
+	return fmt.Sprintf("{%v:%v} -> {%v:%v}", k.net.Src(), k.tcp.Src(), k.net.Dst(), k.tcp.Dst())
 }
 
 type httpStream struct {
@@ -48,17 +38,26 @@ type httpStream struct {
 	bad    *bool
 }
 
+func newHTTPStream(src packetSource, key streamKey) httpStream {
+	var s httpStream
+	s.reader = NewStreamReader(src)
+	s.bytes = new(uint64)
+	s.key = key
+	s.bad = new(bool)
+	return s
+}
+
 // Reassembled is called by tcpassembly
 func (s httpStream) Reassembled(rs []tcpassembly.Reassembly) {
 	for _, r := range rs {
 		if *s.bad {
 			break
 		}
-		*s.bytes += uint64(len(r.Bytes))
 		if r.Skip != 0 {
 			*s.bad = true
-			//break
+			break
 		}
+		*s.bytes += uint64(len(r.Bytes))
 		s.reader.src <- r
 	}
 }

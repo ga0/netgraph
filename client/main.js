@@ -5,9 +5,9 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
             return items;
 
         function getMatchFunction() {
-            if (filterType == "Uri") {
+            if (filterType == "URI") {
                 return function(item) {
-                    return item.Uri.indexOf(pattern) != -1;
+                    return item.URI.indexOf(pattern) != -1;
                 };
             } else if (filterType == "RequestHeader") {
                 return function(item) {
@@ -96,7 +96,7 @@ app.factory('netdata', function($websocket) {
             if (stream.length > 0) {
                 var req = stream[stream.length-1]
                 if (req.Response) {
-                    console.error("duplicate response in stream #" + e.StreamSeq + " uri:" + req.Uri
+                    console.error("duplicate response in stream #" + e.StreamSeq + " URI:" + req.URI
                         + "\nold:", req.Response, "\nnew:", e)
                 } else {
                     req.Response = e;
@@ -135,7 +135,7 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
         return null;
     }
     $scope.selectedRow = null;
-    $scope.filterType = "Uri";
+    $scope.filterType = "URI";
     $scope.order = "Start";
     netdata.sync();
 })

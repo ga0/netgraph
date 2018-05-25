@@ -15,7 +15,7 @@ var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
         <h2>NetGraph</h2>
         Filter:
         <select ng-model="filterType">
-            <option value="Uri">Uri</option>
+            <option value="URI">URI</option>
             <option value="Cookie">Cookie</option>
             <option value="Code">Code</option>
             <option value="RequestHeader">Request Header</option>
@@ -30,7 +30,7 @@ var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
             <option value="Host">Host</option>
             <option value="Duration">Duration</option>
             <option value="StreamSeq">Stream</option>
-            <option value="Uri">Uri</option>
+            <option value="URI">URI</option>
         </select>
         Reverse<input type="checkbox" ng-model="reverse"/>
         <div class="requests">
@@ -42,7 +42,7 @@ var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
                     <th width="5%">Stream</th>
                     <th width="15%">Domain</th>
                     <th width="5%">Method</th>
-                    <th width="58%">Uri</th>
+                    <th width="58%">URI</th>
                     <th width="5%">Code</th>
                     </tr>
                 </thead>
@@ -52,7 +52,7 @@ var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
                     <td>{{ req.StreamSeq }}</td>
                     <td>{{ req.Host }}</td>
                     <td>{{ req.Method }}</td>
-                    <td><a href="http://{{getHost(req)}}{{req.Uri}}" target="_blank">{{ req.Uri }}</a></td>
+                    <td><a href="http://{{getHost(req)}}{{req.URI}}" target="_blank">{{ req.URI }}</a></td>
                     <td>{{ req.Response.Code }}</td>
                 </tr>
             </table>
@@ -60,7 +60,7 @@ var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
         <div id="detail" style="width:100%">
             <div id="request-detail" class="http-detail" style="float: left;">
                 <div id="request-first-line" class="first-line">
-                    {{ selectedReq.Method }} {{ selectedReq.Uri }} {{ selectedReq.Version }}
+                    {{ selectedReq.Method }} {{ selectedReq.URI }} {{ selectedReq.Version }}
                 </div>
                 <div id="request-head" class="head">
                     <table width="100%">
@@ -148,9 +148,9 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
             return items;
 
         function getMatchFunction() {
-            if (filterType == "Uri") {
+            if (filterType == "URI") {
                 return function(item) {
-                    return item.Uri.indexOf(pattern) != -1;
+                    return item.URI.indexOf(pattern) != -1;
                 };
             } else if (filterType == "RequestHeader") {
                 return function(item) {
@@ -239,7 +239,7 @@ app.factory('netdata', function($websocket) {
             if (stream.length > 0) {
                 var req = stream[stream.length-1]
                 if (req.Response) {
-                    console.error("duplicate response in stream #" + e.StreamSeq + " uri:" + req.Uri
+                    console.error("duplicate response in stream #" + e.StreamSeq + " URI:" + req.URI
                         + "\nold:", req.Response, "\nnew:", e)
                 } else {
                     req.Response = e;
@@ -278,7 +278,7 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
         return null;
     }
     $scope.selectedRow = null;
-    $scope.filterType = "Uri";
+    $scope.filterType = "URI";
     $scope.order = "Start";
     netdata.sync();
 })
