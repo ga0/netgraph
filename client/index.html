@@ -2,7 +2,7 @@
     <head>
         <title>[{{reqs.length}}] NetGraph</title>
         <script src="/lib/jquery-1.9.1.min.js"></script>
-        <script src="/lib/snap.svg-min.js"></script>
+        <script src="/lib/base64.js"></script>
         <script src="/lib/angular.min.js"></script>
         <script src="/lib/angular-websocket.js"></script>
         <script src="/main.js"></script>
@@ -23,7 +23,7 @@
         <input ng-model="pattern">
         Sorted by:
         <select ng-model="order">
-            <option value="Start">Time</option>
+            <option value="Start">Start</option>
             <option value="Host">Host</option>
             <option value="Duration">Duration</option>
             <option value="StreamSeq">Stream</option>
@@ -34,23 +34,23 @@
             <table width="100%">
                 <thead>
                     <tr>
-                    <th width="5%">Time</th>
-                    <th width="7%">Duration</th>
-                    <th width="5%">Stream</th>
-                    <th width="15%">Domain</th>
                     <th width="5%">Method</th>
-                    <th width="58%">URI</th>
+                    <th width="15%">Host</th>
+                    <th>URI</th>
                     <th width="5%">Code</th>
+                    <th width="10%">Start</th>
+                    <th width="6%">Duration</th>
+                    <th width="5%">Stream#</th>
                     </tr>
                 </thead>
                 <tr ng-repeat="req in reqs | reqFilter:filterType:pattern | orderBy:order:reverse" ng-click="showDetail($event, req)">
-                    <td>{{ req.Timestamp - reqs[0].Timestamp | number:3 }}</td>
-                    <td>{{ req.Duration | number:3}}</td>
-                    <td>{{ req.StreamSeq }}</td>
-                    <td>{{ req.Host }}</td>
                     <td>{{ req.Method }}</td>
+                    <td style="text-align:center">{{ req.Host }}</td>
                     <td><a href="http://{{getHost(req)}}{{req.URI}}" target="_blank">{{ req.URI }}</a></td>
-                    <td>{{ req.Response.Code }}</td>
+                    <td style="text-align:center">{{ req.Response.Code }}</td>
+                    <td>{{ req.Start | date : 'HH:mm:ss.sss' }}</td>
+                    <td style="text-align:right">{{ req.Duration }} ms</td>
+                    <td style="text-align:center">{{ req.StreamSeq }}</td>
                 </tr>
             </table>
         </div>
@@ -67,9 +67,7 @@
                         </tr>
                     </table>
                 </div>
-                <p id="request-body" class="body">
-                    {{ selectedReq.Body }}
-                </p>
+                <p id="request-body" class="body">{{ selectedReq.Body }}</p>
             </div>
             <div id="response-detail" class="http-detail" style="float: right;">
                 <div id="response-first-line" class="first-line">
@@ -83,9 +81,7 @@
                         </tr>
                     </table>
                 </div>
-                <p id="response-body" class="body">
-                    {{ selectedReq.Response.Body }}
-                </p>
+                <p id="response-body" class="body">{{ selectedReq.Response.Body }}</p>
             </div>
         </div>
     </body>

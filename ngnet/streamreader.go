@@ -12,9 +12,9 @@ type packetSource chan tcpassembly.Reassembly
 
 // StreamReader read data from tcp stream
 type StreamReader struct {
-	src           packetSource
-	buffer        *bytes.Buffer
-	lastTimeStamp float64
+	src      packetSource
+	buffer   *bytes.Buffer
+	lastSeen time.Time
 }
 
 // NewStreamReader create a new StreamReader
@@ -25,24 +25,10 @@ func NewStreamReader(s packetSource) *StreamReader {
 	return f
 }
 
-var (
-	startTimestampSet bool
-	startTimestamp    time.Time
-)
-
-func relativeTimestamp(t time.Time) float64 {
-	if !startTimestampSet {
-		startTimestamp = t
-		startTimestampSet = true
-		return 0.0
-	}
-	return t.Sub(startTimestamp).Seconds()
-}
-
 func (s *StreamReader) fillBuffer() error {
 	if dataBlock, more := <-s.src; more {
 		s.buffer.Write(dataBlock.Bytes)
-		s.lastTimeStamp = relativeTimestamp(dataBlock.Seen)
+		s.lastSeen = dataBlock.Seen
 		return nil
 	}
 	return errors.New("EOF")

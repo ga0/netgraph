@@ -13,9 +13,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"unicode"
 
 	"github.com/ga0/netgraph/client"
+	"github.com/ga0/netgraph/ngnet"
 	"golang.org/x/net/websocket"
 )
 
@@ -46,7 +46,9 @@ func (c *NGClient) TransmitEvents() {
 	for ev := range c.eventChan {
 		json, err := json.Marshal(ev)
 		if err == nil {
-			websocket.Message.Send(c.ws, string(json))
+			strJson := string(json)
+			//print(strJson)
+			websocket.Message.Send(c.ws, strJson)
 		}
 	}
 }
@@ -81,37 +83,28 @@ func (s *NGServer) websocketHandler(ws *websocket.Conn) {
 	delete(s.connectedClient, ws)
 }
 
-func isBinary(body []byte) bool {
-	for c := range body {
-		if !unicode.IsGraphic(rune(c)) {
-			return true
-		}
+func setBodyString(e interface{}) {
+	switch v := e.(type) {
+	case ngnet.HTTPRequestEvent:
+		v.Body = []byte(string(v.Body))
+	case ngnet.HTTPResponseEvent:
+		v.Body = []byte(string(v.Body))
+		print(string(v.Body))
+	default:
+		log.Println("Unkown event")
 	}
-	return false
 }
 
 /*
    Dispatch the event received from ngnet to all clients connected with websocket.
 */
 func (s *NGServer) DispatchEvent() {
-	for ev := range s.eventChan {
-		/*var body []byte
-				switch v := ev.(type) {
-				case ngnet.HTTPRequestEvent:
-					if isBinary(v.Body) {
-		                v.Body = body
-		            }
-				case ngnet.HTTPResponseEvent:
-					body = v.Body
-				default:
-					log.Println("Unkown event")
-				}*/
-
+	for e := range s.eventChan {
 		if s.saveEvent {
-			s.eventBuffer = append(s.eventBuffer, ev)
+			s.eventBuffer = append(s.eventBuffer, e)
 		}
 		for _, c := range s.connectedClient {
-			c.eventChan <- ev
+			c.eventChan <- e
 		}
 	}
 }

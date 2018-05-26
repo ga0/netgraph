@@ -27,7 +27,7 @@ type streamKey struct {
 	net, tcp gopacket.Flow
 }
 
-func (k *streamKey) String() string {
+func (k streamKey) String() string {
 	return fmt.Sprintf("{%v:%v} -> {%v:%v}", k.net.Src(), k.tcp.Src(), k.net.Dst(), k.tcp.Dst())
 }
 

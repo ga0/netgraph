@@ -1,5 +1,10 @@
 package ngnet
 
+import (
+	"fmt"
+	"time"
+)
+
 // HTTPHeaderItem is HTTP header key-value pair
 type HTTPHeaderItem struct {
 	Name  string
@@ -9,8 +14,8 @@ type HTTPHeaderItem struct {
 // HTTPEvent is HTTP request or response
 type HTTPEvent struct {
 	Type      string
-	Start     float64
-	End       float64
+	Start     time.Time
+	End       time.Time
 	StreamSeq uint
 }
 
@@ -63,7 +68,7 @@ func (pair *httpStreamPair) run() {
 			if pair.downStream != nil {
 				*pair.downStream.bad = true
 			}
-			//fmt.Printf("HTTPStream (#%d %v) error: %v\n", pair.connSeq, pair.upStream.key, r)
+			fmt.Printf("HTTPStream (#%d %v) error: %v\n", pair.connSeq, pair.upStream.key, r)
 		}
 	}()
 
@@ -76,10 +81,11 @@ func (pair *httpStreamPair) run() {
 func (pair *httpStreamPair) handleTransaction() {
 	upStream := pair.upStream
 	method, uri, version := upStream.getRequestLine()
+	reqStart := upStream.reader.lastSeen
 	reqHeaders := upStream.getHeaders()
 	reqBody := upStream.getBody(method, reqHeaders, true)
 
-	req := new(HTTPRequestEvent)
+	var req HTTPRequestEvent
 	req.Type = "HTTPRequest"
 	req.Method = method
 	req.URI = uri
@@ -87,14 +93,17 @@ func (pair *httpStreamPair) handleTransaction() {
 	req.Headers = reqHeaders
 	req.Body = reqBody
 	req.StreamSeq = pair.connSeq
+	req.Start = reqStart
+	req.End = upStream.reader.lastSeen
 	pair.eventChan <- req
 
 	downStream := pair.downStream
 	respVersion, code, reason := downStream.getResponseLine()
+	respStart := downStream.reader.lastSeen
 	respHeaders := downStream.getHeaders()
 	respBody := downStream.getBody(method, respHeaders, false)
 
-	resp := new(HTTPResponseEvent)
+	var resp HTTPResponseEvent
 	resp.Type = "HTTPResponse"
 	resp.Version = respVersion
 	resp.Code = uint(code)
@@ -102,5 +111,7 @@ func (pair *httpStreamPair) handleTransaction() {
 	resp.Headers = respHeaders
 	resp.Body = respBody
 	resp.StreamSeq = pair.connSeq
+	resp.Start = respStart
+	resp.End = downStream.reader.lastSeen
 	pair.eventChan <- resp
 }

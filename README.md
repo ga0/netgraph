@@ -9,13 +9,13 @@ Capture and analyze http and tcp streams
 
 请确保你的浏览器支持 websocket。
 
-## 编译,安装,运行
+## 编译,安装,运行 / Compile, Install, Run
 
       1. go get github.com/ga0/netgraph
-      2. 执行 $GOPATH/bin/netgraph -i 网卡名称(比如eth0) -p 服务器端口(默认9000)
-      3. 用浏览器打开运行 netgraph 的服务器地址(比如 http://localhost:9000)
+      2. run $GOPATH/bin/netgraph -i INTERFACE -p PORT
+      3. open the netgraph web page in your browser (for example: http://localhost:9000, 9000 is the PORT set in step 2)
 
-windows下需要先安装winpcap库。
+windows下需要先安装 winpcap 库。
 
 如果你修改过client下的前端文件：
 
@@ -23,7 +23,7 @@ windows下需要先安装winpcap库。
       2. go build
       3. 运行 netgraph
 
-## 选项
+## 选项 / Options
     -bpf string
           Berkeley Packet Filter (default "tcp port 80")
     -f string
@@ -36,7 +36,7 @@ windows下需要先安装winpcap库。
           Web server port (default 9000)
     -s    save network event in server
 
-## 说明
+## 说明 / License
 
 This project is licensed under the terms of the MIT license.
 

@@ -19,6 +19,7 @@ table {
 .body {
     width: 100%;
     word-break: break-all;
+    white-space: pre;
 }
 .break-all {
     word-break: break-all;

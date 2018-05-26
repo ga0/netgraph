@@ -80,7 +80,10 @@ app.factory('netdata', function($websocket) {
         }
         var stream = streams[e.StreamSeq];
         if (e.Type == "HTTPRequest") {
-            e.Body = atob(e.Body)
+            e.Start = new Date(e.Start)
+            if (e.Body) {
+                e.Body = Base64.decode(e.Body)
+            }
             stream.push(e);
             reqs.push(e);
             //add Host
@@ -92,7 +95,10 @@ app.factory('netdata', function($websocket) {
                 }
             }
         } else if (e.Type == "HTTPResponse") {
-            e.Body = atob(e.Body)
+            if (e.Body) {
+                e.Body = Base64.decode(e.Body)
+            }
+            
             if (stream.length > 0) {
                 var req = stream[stream.length-1]
                 if (req.Response) {
@@ -100,7 +106,7 @@ app.factory('netdata', function($websocket) {
                         + "\nold:", req.Response, "\nnew:", e)
                 } else {
                     req.Response = e;
-                    req.Duration = e.End - req.Start
+                    req.Duration = new Date(e.End) - req.Start;
                 }
             }
         }
