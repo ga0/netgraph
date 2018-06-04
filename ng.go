@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/ga0/netgraph/ngnet"
-	"github.com/ga0/netgraph/ngserver"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
@@ -15,26 +15,54 @@ import (
 	"github.com/google/gopacket/tcpassembly"
 )
 
-var eventChan chan interface{}
-var inputPcap = flag.String("f", "", "Open pcap file")
 var device = flag.String("i", "", "Device to capture, auto select one if no device provided")
-var bindingPort = flag.Int("p", 9000, "Web server port")
-var bpf = flag.String("bpf", "tcp port 80", "Berkeley Packet Filter")
-var outputPcap = flag.String("o", "", "Output captured packet to pcap file")
-var saveEvent = flag.Bool("s", false, "save network event in server")
+var bpf = flag.String("bpf", "tcp port 80", "Set berkeley packet filter")
+
+var outputHTTP = flag.String("o", "", "Write HTTP request/response to file")
+var inputPcap = flag.String("input-pcap", "", "Open pcap file")
+var outputPcap = flag.String("output-pcap", "", "Write captured packet to a pcap file")
+
+var bindingPort = flag.Int("p", 9000, "Web server port. If the port is set to '0', the server will not run.")
+var saveEvent = flag.Bool("s", false, "Save HTTP event in server")
+
+var verbose = flag.Bool("v", true, "Show more message")
+
+// NGHTTPEventHandler handle HTTP events
+type NGHTTPEventHandler interface {
+	PushEvent(interface{})
+	Wait()
+}
+
+var handlers []NGHTTPEventHandler
 
 func init() {
 	flag.Parse()
 	if *inputPcap != "" && *outputPcap != "" {
-		log.Fatalln("set -f and -o at the same time")
+		log.Fatalln("ERROR: set -input-pcap and -output-pcap at the same time")
 	}
 	if *inputPcap != "" && *device != "" {
-		log.Fatalln("set -f and -i at the same time")
+		log.Fatalln("ERROR: set -input-pcap and -i at the same time")
+	}
+	if !*verbose {
+		log.SetOutput(ioutil.Discard)
 	}
 	if *inputPcap != "" {
 		*saveEvent = true
 	}
-	eventChan = make(chan interface{}, 1024)
+}
+
+func initEventHandlers() {
+	if *bindingPort != 0 {
+		addr := fmt.Sprintf(":%d", *bindingPort)
+		ngserver := NewNGServer(addr, *saveEvent)
+		go ngserver.Serve()
+		handlers = append(handlers, ngserver)
+	}
+
+	if *outputHTTP != "" {
+		p := NewEventPrinter(*outputHTTP)
+		handlers = append(handlers, p)
+	}
 }
 
 func autoSelectDev() string {
@@ -72,7 +100,7 @@ func packetSource() *gopacket.PacketSource {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Printf("open pcap file \"%s\"\n", *inputPcap)
+		log.Printf("open pcap file \"%s\"\n", *inputPcap)
 		return gopacket.NewPacketSource(handle, handle.LinkType())
 	}
 
@@ -92,11 +120,11 @@ func packetSource() *gopacket.PacketSource {
 			log.Fatalln("Failed to set BPF filter:", err)
 		}
 	}
-	fmt.Printf("open live on device \"%s\", bpf \"%s\", serves on port %d\n", *device, *bpf, *bindingPort)
+	log.Printf("open live on device \"%s\", bpf \"%s\"\n", *device, *bpf)
 	return gopacket.NewPacketSource(handle, handle.LinkType())
 }
 
-func runNGNet(packetSource *gopacket.PacketSource) {
+func runNGNet(packetSource *gopacket.PacketSource, eventChan chan<- interface{}) {
 	streamFactory := ngnet.NewHTTPStreamFactory(eventChan)
 	pool := tcpassembly.NewStreamPool(streamFactory)
 	assembler := tcpassembly.NewAssembler(pool)
@@ -146,6 +174,87 @@ func runNGNet(packetSource *gopacket.PacketSource) {
 	log.Println("Read pcap file complete")
 	streamFactory.Wait()
 	log.Println("Parse complete, packet count: ", count)
+
+	close(eventChan)
+}
+
+// EventPrinter print HTTP events to file or stdout
+type EventPrinter struct {
+	file *os.File
+}
+
+// NewEventPrinter creates EventPrinter
+func NewEventPrinter(name string) *EventPrinter {
+	p := new(EventPrinter)
+	var err error
+	if name == "stdout" {
+		p.file = os.Stdout
+	} else {
+		p.file, err = os.OpenFile(name, os.O_CREATE|os.O_WRONLY, 0755)
+		if err != nil {
+			log.Fatalln("Cannot open file ", name)
+		}
+	}
+
+	return p
+}
+
+func (p *EventPrinter) printHTTPRequestEvent(req ngnet.HTTPRequestEvent) {
+	fmt.Fprintf(p.file, "[%s] #%d Request %s\r\n", req.Start.Format("2006-01-02 15:04:05.000"), req.StreamSeq, req.ClientAddr)
+	fmt.Fprintf(p.file, "%s %s %s\r\n", req.Method, req.URI, req.Version)
+	for _, h := range req.Headers {
+		fmt.Fprintf(p.file, "%s: %s\r\n", h.Name, h.Value)
+	}
+
+	fmt.Fprintf(p.file, "\r\ncontent(%d)", len(req.Body))
+	if len(req.Body) > 0 {
+		fmt.Fprintf(p.file, "%s", req.Body)
+	}
+	fmt.Fprintf(p.file, "\r\n\r\n")
+}
+
+func (p *EventPrinter) printHTTPResponseEvent(resp ngnet.HTTPResponseEvent) {
+	fmt.Fprintf(p.file, "[%s] #%d Response\r\n", resp.Start.Format("2006-01-02 15:04:05.000"), resp.StreamSeq)
+	fmt.Fprintf(p.file, "%s %d %s\r\n", resp.Version, resp.Code, resp.Reason)
+	for _, h := range resp.Headers {
+		fmt.Fprintf(p.file, "%s: %s\r\n", h.Name, h.Value)
+	}
+
+	fmt.Fprintf(p.file, "\r\ncontent(%d)", len(resp.Body))
+	if len(resp.Body) > 0 {
+		fmt.Fprintf(p.file, "%s", resp.Body)
+	}
+	fmt.Fprintf(p.file, "\r\n\r\n")
+}
+
+// PushEvent implements the function of interface NGHTTPEventHandler
+func (p *EventPrinter) PushEvent(e interface{}) {
+	switch v := e.(type) {
+	case ngnet.HTTPRequestEvent:
+		p.printHTTPRequestEvent(v)
+	case ngnet.HTTPResponseEvent:
+		//p.printHTTPResponseEvent(v)
+	default:
+		log.Printf("Unkown event: %v", e)
+	}
+}
+
+// Wait implements the function of interface NGHTTPEventHandler
+func (p *EventPrinter) Wait() {}
+
+func runEventHandler(eventChan <-chan interface{}) {
+	for e := range eventChan {
+		if e == nil {
+			break
+		}
+		for _, h := range handlers {
+			h.PushEvent(e)
+		}
+	}
+
+	for _, h := range handlers {
+		h.Wait()
+	}
 }
 
 /*
@@ -154,8 +263,8 @@ func runNGNet(packetSource *gopacket.PacketSource) {
 //go:generate python embed_html.py
 
 func main() {
-	go runNGNet(packetSource())
-	addr := fmt.Sprintf(":%d", *bindingPort)
-	s := ngserver.NewNGServer(addr, eventChan, *saveEvent)
-	s.Serve()
+	initEventHandlers()
+	eventChan := make(chan interface{}, 1024)
+	go runNGNet(packetSource(), eventChan)
+	runEventHandler(eventChan)
 }

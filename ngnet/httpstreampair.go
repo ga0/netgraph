@@ -1,7 +1,6 @@
 package ngnet
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -22,11 +21,12 @@ type HTTPEvent struct {
 // HTTPRequestEvent is HTTP request
 type HTTPRequestEvent struct {
 	HTTPEvent
-	Method  string
-	URI     string
-	Version string
-	Headers []HTTPHeaderItem
-	Body    []byte
+	ClientAddr string
+	Method     string
+	URI        string
+	Version    string
+	Headers    []HTTPHeaderItem
+	Body       []byte
 }
 
 // HTTPResponseEvent is HTTP response
@@ -47,10 +47,10 @@ type httpStreamPair struct {
 	requestSeq uint
 	sem        chan byte
 	connSeq    uint
-	eventChan  chan interface{}
+	eventChan  chan<- interface{}
 }
 
-func newHTTPStreamPair(seq uint, eventChan chan interface{}) *httpStreamPair {
+func newHTTPStreamPair(seq uint, eventChan chan<- interface{}) *httpStreamPair {
 	pair := new(httpStreamPair)
 	pair.connSeq = seq
 	pair.sem = make(chan byte, 1)
@@ -68,7 +68,7 @@ func (pair *httpStreamPair) run() {
 			if pair.downStream != nil {
 				*pair.downStream.bad = true
 			}
-			fmt.Printf("HTTPStream (#%d %v) error: %v\n", pair.connSeq, pair.upStream.key, r)
+			//fmt.Printf("HTTPStream (#%d %v) error: %v\n", pair.connSeq, pair.upStream.key, r)
 		}
 	}()
 
@@ -86,6 +86,7 @@ func (pair *httpStreamPair) handleTransaction() {
 	reqBody := upStream.getBody(method, reqHeaders, true)
 
 	var req HTTPRequestEvent
+	req.ClientAddr = pair.upStream.key.net.Src().String() + ":" + pair.upStream.key.tcp.Src().String()
 	req.Type = "HTTPRequest"
 	req.Method = method
 	req.URI = uri

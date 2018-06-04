@@ -1,31 +1,31 @@
-/*
-   package ngserver get the captured http data from ngnet,
-   and send these data to frontend by websocket.
+/*Package ngserver get the captured http data from ngnet,
+  and send these data to frontend by websocket.
 
-           chan                    +-----NGClient
-   ngnet----------NGServer---------+-----NGClient
-                                   +-----NGClient
+          chan                    +-----NGClient
+  ngnet----------NGServer---------+-----NGClient
+                                  +-----NGClient
 */
-package ngserver
+package main
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
-	"github.com/ga0/netgraph/client"
-	"github.com/ga0/netgraph/ngnet"
+	"github.com/ga0/netgraph/web"
 	"golang.org/x/net/websocket"
 )
 
+// NGClient is the websocket client
 type NGClient struct {
 	eventChan chan interface{}
 	server    *NGServer
 	ws        *websocket.Conn
 }
 
-func (c *NGClient) RecvAndProcessCommand() {
+func (c *NGClient) recvAndProcessCommand() {
 	for {
 		var msg string
 		err := websocket.Message.Receive(c.ws, &msg)
@@ -34,7 +34,7 @@ func (c *NGClient) RecvAndProcessCommand() {
 		}
 		if len(msg) > 0 {
 			if msg == "sync" {
-				c.server.Sync(c)
+				c.server.sync(c)
 			}
 		} else {
 			panic("empty command")
@@ -42,21 +42,20 @@ func (c *NGClient) RecvAndProcessCommand() {
 	}
 }
 
-func (c *NGClient) TransmitEvents() {
+func (c *NGClient) transmitEvents() {
 	for ev := range c.eventChan {
 		json, err := json.Marshal(ev)
 		if err == nil {
-			strJson := string(json)
-			//print(strJson)
-			websocket.Message.Send(c.ws, strJson)
+			websocket.Message.Send(c.ws, string(json))
 		}
 	}
 }
 
-func (c *NGClient) Close() {
+func (c *NGClient) close() {
 	close(c.eventChan)
 }
 
+// NewNGClient creates NGClient
 func NewNGClient(ws *websocket.Conn, server *NGServer) *NGClient {
 	c := new(NGClient)
 	c.server = server
@@ -65,48 +64,38 @@ func NewNGClient(ws *websocket.Conn, server *NGServer) *NGClient {
 	return c
 }
 
+// NGServer is a http server which push captured HTTPEvent to the front end
 type NGServer struct {
-	eventChan       chan interface{}
 	addr            string
 	staticFileDir   string
 	connectedClient map[*websocket.Conn]*NGClient
 	eventBuffer     []interface{}
 	saveEvent       bool
+	wg              sync.WaitGroup
 }
 
 func (s *NGServer) websocketHandler(ws *websocket.Conn) {
 	c := NewNGClient(ws, s)
 	s.connectedClient[ws] = c
-	go c.TransmitEvents()
-	c.RecvAndProcessCommand()
-	c.Close()
+	go c.transmitEvents()
+	c.recvAndProcessCommand()
+	c.close()
 	delete(s.connectedClient, ws)
 }
 
-func setBodyString(e interface{}) {
-	switch v := e.(type) {
-	case ngnet.HTTPRequestEvent:
-		v.Body = []byte(string(v.Body))
-	case ngnet.HTTPResponseEvent:
-		v.Body = []byte(string(v.Body))
-		print(string(v.Body))
-	default:
-		log.Println("Unkown event")
+// PushEvent dispatches the event received from ngnet to all clients connected with websocket.
+func (s *NGServer) PushEvent(e interface{}) {
+	if s.saveEvent {
+		s.eventBuffer = append(s.eventBuffer, e)
+	}
+	for _, c := range s.connectedClient {
+		c.eventChan <- e
 	}
 }
 
-/*
-   Dispatch the event received from ngnet to all clients connected with websocket.
-*/
-func (s *NGServer) DispatchEvent() {
-	for e := range s.eventChan {
-		if s.saveEvent {
-			s.eventBuffer = append(s.eventBuffer, e)
-		}
-		for _, c := range s.connectedClient {
-			c.eventChan <- e
-		}
-	}
+// Wait waits for serving
+func (s *NGServer) Wait() {
+	s.wg.Wait()
 }
 
 /*
@@ -114,7 +103,7 @@ func (s *NGServer) DispatchEvent() {
    the NGServer will push all the http message buffered in eventBuffer to
    the client.
 */
-func (s *NGServer) Sync(c *NGClient) {
+func (s *NGServer) sync(c *NGClient) {
 	for _, ev := range s.eventBuffer {
 		c.eventChan <- ev
 	}
@@ -128,7 +117,7 @@ func (s *NGServer) handleStaticFile(w http.ResponseWriter, r *http.Request) {
 	if uri == "/" {
 		uri = "/index.html"
 	}
-	c, err := client.GetContent(uri)
+	c, err := web.GetContent(uri)
 	if err != nil {
 		log.Println(r.RequestURI)
 		http.NotFound(w, r)
@@ -137,8 +126,8 @@ func (s *NGServer) handleStaticFile(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(c))
 }
 
+// Serve the web page
 func (s *NGServer) Serve() {
-	go s.DispatchEvent()
 	http.Handle("/data", websocket.Handler(s.websocketHandler))
 
 	/*
@@ -152,16 +141,17 @@ func (s *NGServer) Serve() {
 	} else {
 		http.HandleFunc("/", s.handleStaticFile)
 	}
-
+	s.wg.Add(1)
+	defer s.wg.Done()
 	err = http.ListenAndServe(s.addr, nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func NewNGServer(addr string, eventChan chan interface{}, saveEvent bool) *NGServer {
+// NewNGServer creates NGServer
+func NewNGServer(addr string, saveEvent bool) *NGServer {
 	s := new(NGServer)
-	s.eventChan = eventChan
 	s.addr = addr
 	s.connectedClient = make(map[*websocket.Conn]*NGClient)
 	s.saveEvent = saveEvent

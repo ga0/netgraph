@@ -1,7 +1,7 @@
 
 """
-    This python script will combine all the frontend files(.js, .html, .css) in ./client
-    to one go source file (client.go)
+    This python script will combine all the frontend files(.js, .html, .css) in ./web
+    to one go source file (web.go)
 """
 import os
 valid_files = [".js", ".html", ".css"]
@@ -22,17 +22,17 @@ def generate_go(nouse, dir, files):
         i1 = len(fcontent) + i0
         print(f)
         content += fcontent
-        index[dir[len("client"):]+"/"+f] = (i0, i1)
+        index[dir[len("web"):]+"/"+f] = (i0, i1)
 
     for f in filter(valid, files):
         getOneFile(f)
 
 if __name__ == "__main__":
-    outf = open("client/client.go", "w")
+    outf = open("web/web.go", "w")
     outf.write("//auto generated - don't edit it\n")
-    outf.write("package client\n")
+    outf.write("package web\n")
     outf.write('import "errors"\n')
-    os.path.walk("client", generate_go, 0)
+    os.path.walk("web", generate_go, 0)
     outf.write("var content = []byte(`" + content.replace('`', '`+"`"+`') + "`)\n")
     outf.write("""type contentIndexStruct struct {
     begin int

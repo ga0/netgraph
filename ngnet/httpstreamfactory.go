@@ -13,11 +13,11 @@ type HTTPStreamFactory struct {
 	wg            *sync.WaitGroup
 	seq           *uint
 	uniStreams    *map[streamKey]*httpStreamPair
-	eventChan     chan interface{}
+	eventChan     chan<- interface{}
 }
 
 // NewHTTPStreamFactory create a NewHTTPStreamFactory
-func NewHTTPStreamFactory(out chan interface{}) HTTPStreamFactory {
+func NewHTTPStreamFactory(out chan<- interface{}) HTTPStreamFactory {
 	var f HTTPStreamFactory
 	f.seq = new(uint)
 	*f.seq = 0

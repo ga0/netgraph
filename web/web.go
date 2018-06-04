@@ -1,5 +1,5 @@
 //auto generated - don't edit it
-package client
+package web
 import "errors"
 var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
     <head>

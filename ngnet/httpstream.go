@@ -19,8 +19,8 @@ var (
 )
 
 func init() {
-	httpRequestFirtLine = regexp.MustCompile("([A-Z]+) (.+) (HTTP/.+)")
-	httpResponseFirtLine = regexp.MustCompile("(HTTP/.+) (\\d{3}) (.+)")
+	httpRequestFirtLine = regexp.MustCompile(`([A-Z]+) (.+) (HTTP/.+)\r\n`)
+	httpResponseFirtLine = regexp.MustCompile(`(HTTP/.+) (\d{3}) (.+)\r\n`)
 }
 
 type streamKey struct {
@@ -170,17 +170,18 @@ func (s *httpStream) getFixedLengthContent(contentLength int) []byte {
 
 func getContentInfo(hs []HTTPHeaderItem) (contentLength int, contentEncoding string, contentType string, chunked bool) {
 	for _, h := range hs {
-		if h.Name == "Content-Length" {
+		lowerName := strings.ToLower(h.Name)
+		if lowerName == "content-length" {
 			var err error
 			contentLength, err = strconv.Atoi(h.Value)
 			if err != nil {
 				panic("Content-Length error: " + h.Value + ", err=" + err.Error())
 			}
-		} else if h.Name == "Transfer-Encoding" && h.Value == "chunked" {
+		} else if lowerName == "transfer-encoding" && h.Value == "chunked" {
 			chunked = true
-		} else if h.Name == "Content-Encoding" {
+		} else if lowerName == "content-encoding" {
 			contentEncoding = h.Value
-		} else if h.Name == "Content-Type" {
+		} else if lowerName == "content-type" {
 			contentType = h.Value
 		}
 	}
