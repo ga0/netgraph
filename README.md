@@ -1,3 +1,5 @@
+![](https://travis-ci.com/ga0/netgraph.svg?branch=master)
+
 # netgraph
 Capture and analyze http and tcp streams
 
