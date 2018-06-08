@@ -24,17 +24,24 @@ windows下需要先安装 winpcap 库。
       3. 运行 netgraph
 
 ## 选项 / Options
-    -bpf string
-          Berkeley Packet Filter (default "tcp port 80")
-    -f string
-          Open pcap file
-    -i string
-          Device to capture, auto select one if no device provided
-    -o string
-          Output captured packet to pcap file
-    -p int
-          Web server port (default 9000)
-    -s    save network event in server
+      -assembly_debug_log
+            If true, the github.com/google/gopacket/tcpassembly library will log verbose debugging information (at least one line per packet)
+      -assembly_memuse_log
+            If true, the github.com/google/gopacket/tcpassembly library will log information regarding its memory use every once in a while.
+      -bpf string
+            Set berkeley packet filter (default "tcp port 80")
+      -i string
+            Device to capture, auto select one if no device provided
+      -input-pcap string
+            Open pcap file
+      -o string
+            Write HTTP request/response to file
+      -output-pcap string
+            Write captured packet to a pcap file
+      -p int
+            Web server port. If the port is set to '0', the server will not run. (default 9000)
+      -s	Save HTTP event in server
+      -v	Show more message (default true)
 
 ## 说明 / License
 
