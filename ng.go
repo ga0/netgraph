@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"github.com/ga0/netgraph/ngnet"
 	"github.com/google/gopacket"
@@ -141,33 +142,40 @@ func runNGNet(packetSource *gopacket.PacketSource, eventChan chan<- interface{})
 	}
 
 	var count uint
-	for packet := range packetSource.Packets() {
-		if packet == nil {
-			break
-		}
+	ticker := time.Tick(time.Minute)
 
-		count++
-		netLayer := packet.NetworkLayer()
-		if netLayer == nil {
-			continue
-		}
-		transLayer := packet.TransportLayer()
-		if transLayer == nil {
-			continue
-		}
-		tcp, _ := transLayer.(*layers.TCP)
-		if tcp == nil {
-			continue
-		}
+	for {
+		select {
+		case packet := <-packetSource.Packets():
+			if packet == nil {
+				break
+			}
 
-		if pcapWriter != nil {
-			pcapWriter.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
-		}
+			count++
+			netLayer := packet.NetworkLayer()
+			if netLayer == nil {
+				continue
+			}
+			transLayer := packet.TransportLayer()
+			if transLayer == nil {
+				continue
+			}
+			tcp, _ := transLayer.(*layers.TCP)
+			if tcp == nil {
+				continue
+			}
 
-		assembler.AssembleWithTimestamp(
-			netLayer.NetworkFlow(),
-			tcp,
-			packet.Metadata().CaptureInfo.Timestamp)
+			if pcapWriter != nil {
+				pcapWriter.WritePacket(packet.Metadata().CaptureInfo, packet.Data())
+			}
+
+			assembler.AssembleWithTimestamp(
+				netLayer.NetworkFlow(),
+				tcp,
+				packet.Metadata().CaptureInfo.Timestamp)
+		case <-ticker:
+			assembler.FlushOlderThan(time.Now().Add(time.Minute * -2))
+		}
 	}
 
 	assembler.FlushAll()
