@@ -144,11 +144,12 @@ func runNGNet(packetSource *gopacket.PacketSource, eventChan chan<- interface{})
 	var count uint
 	ticker := time.Tick(time.Minute)
 
+LOOP:
 	for {
 		select {
 		case packet := <-packetSource.Packets():
 			if packet == nil {
-				break
+				break LOOP
 			}
 
 			count++
