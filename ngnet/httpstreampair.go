@@ -63,10 +63,10 @@ func (pair *httpStreamPair) run() {
 	defer func() {
 		if r := recover(); r != nil {
 			if pair.upStream != nil {
-				*pair.upStream.bad = true
+				close(pair.upStream.reader.stopCh)
 			}
 			if pair.downStream != nil {
-				*pair.downStream.bad = true
+				close(pair.downStream.reader.stopCh)
 			}
 			//fmt.Printf("HTTPStream (#%d %v) error: %v\n", pair.connSeq, pair.upStream.key, r)
 		}

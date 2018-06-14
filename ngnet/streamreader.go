@@ -13,16 +13,18 @@ type packetSource chan tcpassembly.Reassembly
 // StreamReader read data from tcp stream
 type StreamReader struct {
 	src      packetSource
+	stopCh   chan interface{}
 	buffer   *bytes.Buffer
 	lastSeen time.Time
 }
 
 // NewStreamReader create a new StreamReader
 func NewStreamReader(s packetSource) *StreamReader {
-	f := new(StreamReader)
-	f.src = s
-	f.buffer = bytes.NewBuffer([]byte(""))
-	return f
+	r := new(StreamReader)
+	r.stopCh = make(chan interface{})
+	r.src = s
+	r.buffer = bytes.NewBuffer([]byte(""))
+	return r
 }
 
 func (s *StreamReader) fillBuffer() error {

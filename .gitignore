@@ -2,3 +2,4 @@ netgraph
 test.pcap
 .vscode/
 debug
+.DS_Store

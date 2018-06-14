@@ -58,7 +58,12 @@ func (s httpStream) Reassembled(rs []tcpassembly.Reassembly) {
 			break
 		}
 		*s.bytes += uint64(len(r.Bytes))
-		s.reader.src <- r
+		select {
+		case <-s.reader.stopCh:
+			*s.bad = true
+			return
+		case s.reader.src <- r:
+		}
 	}
 }
 
