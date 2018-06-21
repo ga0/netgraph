@@ -22,6 +22,7 @@ type HTTPEvent struct {
 type HTTPRequestEvent struct {
 	HTTPEvent
 	ClientAddr string
+	ServerAddr string
 	Method     string
 	URI        string
 	Version    string
@@ -85,6 +86,7 @@ func (pair *httpStreamPair) handleTransaction() {
 
 	var req HTTPRequestEvent
 	req.ClientAddr = pair.upStream.key.net.Src().String() + ":" + pair.upStream.key.tcp.Src().String()
+	req.ServerAddr = pair.upStream.key.net.Dst().String() + ":" + pair.upStream.key.tcp.Dst().String()
 	req.Type = "HTTPRequest"
 	req.Method = method
 	req.URI = uri
