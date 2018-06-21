@@ -45,7 +45,6 @@ type httpStreamPair struct {
 	downStream *httpStream
 
 	requestSeq uint
-	sem        chan byte
 	connSeq    uint
 	eventChan  chan<- interface{}
 }
@@ -53,7 +52,6 @@ type httpStreamPair struct {
 func newHTTPStreamPair(seq uint, eventChan chan<- interface{}) *httpStreamPair {
 	pair := new(httpStreamPair)
 	pair.connSeq = seq
-	pair.sem = make(chan byte, 1)
 	pair.eventChan = eventChan
 
 	return pair

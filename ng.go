@@ -22,6 +22,7 @@ var bpf = flag.String("bpf", "tcp port 80", "Set berkeley packet filter")
 var outputHTTP = flag.String("o", "", "Write HTTP request/response to file")
 var inputPcap = flag.String("input-pcap", "", "Open pcap file")
 var outputPcap = flag.String("output-pcap", "", "Write captured packet to a pcap file")
+var requestOnly = flag.Bool("output-request-only", true, "Write HTTP request only, drop response")
 
 var bindingPort = flag.Int("p", 9000, "Web server port. If the port is set to '0', the server will not run.")
 var saveEvent = flag.Bool("s", false, "Save HTTP event in server")
@@ -143,6 +144,7 @@ func runNGNet(packetSource *gopacket.PacketSource, eventChan chan<- interface{})
 
 	var count uint
 	ticker := time.Tick(time.Minute)
+	var lastPacketTimestamp time.Time
 
 LOOP:
 	for {
@@ -174,8 +176,10 @@ LOOP:
 				netLayer.NetworkFlow(),
 				tcp,
 				packet.Metadata().CaptureInfo.Timestamp)
+
+			lastPacketTimestamp = packet.Metadata().CaptureInfo.Timestamp
 		case <-ticker:
-			assembler.FlushOlderThan(time.Now().Add(time.Minute * -2))
+			assembler.FlushOlderThan(lastPacketTimestamp.Add(time.Minute * -2))
 		}
 	}
 
@@ -242,7 +246,9 @@ func (p *EventPrinter) PushEvent(e interface{}) {
 	case ngnet.HTTPRequestEvent:
 		p.printHTTPRequestEvent(v)
 	case ngnet.HTTPResponseEvent:
-		//p.printHTTPResponseEvent(v)
+		if !*requestOnly {
+			p.printHTTPResponseEvent(v)
+		}
 	default:
 		log.Printf("Unkown event: %v", e)
 	}

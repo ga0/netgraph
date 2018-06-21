@@ -8,27 +8,25 @@ import (
 	"github.com/google/gopacket/tcpassembly"
 )
 
-type packetSource chan tcpassembly.Reassembly
-
 // StreamReader read data from tcp stream
 type StreamReader struct {
-	src      packetSource
+	src      chan tcpassembly.Reassembly
 	stopCh   chan interface{}
 	buffer   *bytes.Buffer
 	lastSeen time.Time
 }
 
 // NewStreamReader create a new StreamReader
-func NewStreamReader(s packetSource) *StreamReader {
+func NewStreamReader() *StreamReader {
 	r := new(StreamReader)
 	r.stopCh = make(chan interface{})
-	r.src = s
 	r.buffer = bytes.NewBuffer([]byte(""))
+	r.src = make(chan tcpassembly.Reassembly, 32)
 	return r
 }
 
 func (s *StreamReader) fillBuffer() error {
-	if dataBlock, more := <-s.src; more {
+	if dataBlock, ok := <-s.src; ok {
 		s.buffer.Write(dataBlock.Bytes)
 		s.lastSeen = dataBlock.Seen
 		return nil

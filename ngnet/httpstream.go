@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/tcpassembly"
@@ -38,9 +39,9 @@ type httpStream struct {
 	bad    *bool
 }
 
-func newHTTPStream(src packetSource, key streamKey) httpStream {
+func newHTTPStream(key streamKey) httpStream {
 	var s httpStream
-	s.reader = NewStreamReader(src)
+	s.reader = NewStreamReader()
 	s.bytes = new(uint64)
 	s.key = key
 	s.bad = new(bool)
@@ -49,20 +50,33 @@ func newHTTPStream(src packetSource, key streamKey) httpStream {
 
 // Reassembled is called by tcpassembly
 func (s httpStream) Reassembled(rs []tcpassembly.Reassembly) {
+	if *s.bad {
+		return
+	}
+
 	for _, r := range rs {
-		if *s.bad {
-			break
-		}
 		if r.Skip != 0 {
 			*s.bad = true
-			break
+			return
 		}
+
+		if len(r.Bytes) == 0 {
+			continue
+		}
+
 		*s.bytes += uint64(len(r.Bytes))
+		ticker := time.Tick(time.Second)
+
 		select {
 		case <-s.reader.stopCh:
 			*s.bad = true
 			return
 		case s.reader.src <- r:
+		case <-ticker:
+			// Sometimes pcap only captured HTTP response with no request!
+			// Let's wait few seconds to avoid dead lock.
+			*s.bad = true
+			return
 		}
 	}
 }

@@ -52,20 +52,19 @@ func (f *HTTPStreamFactory) runStreamPair(streamPair *httpStreamPair) {
 func (f HTTPStreamFactory) New(netFlow, tcpFlow gopacket.Flow) (ret tcpassembly.Stream) {
 	revkey := streamKey{netFlow.Reverse(), tcpFlow.Reverse()}
 	streamPair, ok := (*f.uniStreams)[revkey]
-	src := make(packetSource, 32)
 	if ok {
 		if streamPair.upStream == nil {
 			panic("unbelievable!?")
 		}
 		delete(*f.uniStreams, revkey)
 		key := streamKey{netFlow, tcpFlow}
-		s := newHTTPStream(src, key)
+		s := newHTTPStream(key)
 		streamPair.downStream = &s
 		ret = s
 	} else {
 		streamPair = newHTTPStreamPair(*f.seq, f.eventChan)
 		key := streamKey{netFlow, tcpFlow}
-		s := newHTTPStream(src, key)
+		s := newHTTPStream(key)
 		streamPair.upStream = &s
 		(*f.uniStreams)[key] = streamPair
 		*f.seq++
