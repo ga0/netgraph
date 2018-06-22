@@ -228,8 +228,8 @@ func (p *EventPrinter) printHTTPRequestEvent(req ngnet.HTTPRequestEvent) {
 }
 
 func (p *EventPrinter) printHTTPResponseEvent(resp ngnet.HTTPResponseEvent) {
-	fmt.Fprintf(p.file, "[%s] #%d Response \r\n",
-		resp.Start.Format("2006-01-02 15:04:05.000"), resp.StreamSeq)
+	fmt.Fprintf(p.file, "[%s] #%d Response %s<-%s\r\n",
+		resp.Start.Format("2006-01-02 15:04:05.000"), resp.StreamSeq, resp.ClientAddr, resp.ServerAddr)
 	fmt.Fprintf(p.file, "%s %d %s\r\n", resp.Version, resp.Code, resp.Reason)
 	for _, h := range resp.Headers {
 		fmt.Fprintf(p.file, "%s: %s\r\n", h.Name, h.Value)

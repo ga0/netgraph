@@ -33,11 +33,13 @@ type HTTPRequestEvent struct {
 // HTTPResponseEvent is HTTP response
 type HTTPResponseEvent struct {
 	HTTPEvent
-	Version string
-	Code    uint
-	Reason  string
-	Headers []HTTPHeaderItem
-	Body    []byte
+	ClientAddr string
+	ServerAddr string
+	Version    string
+	Code       uint
+	Reason     string
+	Headers    []HTTPHeaderItem
+	Body       []byte
 }
 
 // httpStreamPair is Bi-direction HTTP stream pair
@@ -105,6 +107,8 @@ func (pair *httpStreamPair) handleTransaction() {
 	respBody := downStream.getBody(method, respHeaders, false)
 
 	var resp HTTPResponseEvent
+	resp.ClientAddr = pair.upStream.key.net.Src().String() + ":" + pair.upStream.key.tcp.Src().String()
+	resp.ServerAddr = pair.upStream.key.net.Dst().String() + ":" + pair.upStream.key.tcp.Dst().String()
 	resp.Type = "HTTPResponse"
 	resp.Version = respVersion
 	resp.Code = uint(code)

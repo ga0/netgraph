@@ -1,5 +1,6 @@
 netgraph 
 test.pcap
 .vscode/
+.idea/
 debug
 .DS_Store
