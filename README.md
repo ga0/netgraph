@@ -1,53 +1,63 @@
 ![](https://travis-ci.com/ga0/netgraph.svg?branch=master)
+![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)
 
-# netgraph
-Capture and analyze http and tcp streams
+# Netgraph
 
-一个B/S架构的HTTP抓包工具。
-抓包和组包使用 github.com/google/gopacket
-前后端通信使用 golang.org/x/net/websocket
+Netgraph is a packet sniffer tool that captures all HTTP requests/responses, and display them in web page.
 
-![截图](https://raw.githubusercontent.com/ga0/netgraph/master/screenshot.png)
 
-请确保你的浏览器支持 websocket。
+![Screenshot](https://raw.githubusercontent.com/ga0/netgraph/master/screenshot.png)
 
-## 编译,安装,运行 / Compile, Install, Run
+You can run Negraph in your linux server without desktop environment installed, and monitor the http requests/responses in you Macbook's browser.
+
+## Compile, Install, Run
 
       1. go get github.com/ga0/netgraph
       2. run $GOPATH/bin/netgraph -i INTERFACE -p PORT
       3. open the netgraph web page in your browser (for example: http://localhost:9000, 9000 is the PORT set in step 2)
 
-windows下需要先安装 winpcap 库。
+      Windows user need to install winpcap library first.
 
-如果你修改过client下的前端文件：
+## Options
 
-      1. 在源码根目录下执行 go generate
-      2. go build
-      3. 运行 netgraph
-
-## 选项 / Options
-      -assembly_debug_log
-            If true, the github.com/google/gopacket/tcpassembly library will log verbose debugging information (at least one line per packet)
-      -assembly_memuse_log
-            If true, the github.com/google/gopacket/tcpassembly library will log information regarding its memory use every once in a while.
       -bpf string
             Set berkeley packet filter (default "tcp port 80")
       -i string
-            Device to capture, auto select one if no device provided
+            Listen on interface, auto select one if no interface is provided
       -input-pcap string
-            Open pcap file
+            Open a pcap file
       -o string
-            Write HTTP request/response to file
+            Write HTTP requests/responses to file, set value "stdout" to print to console
       -output-pcap string
             Write captured packet to a pcap file
+      -output-request-only
+    	      Write only HTTP request to file, drop response. Only used when option "-o" is present. (default true)
       -p int
-            Web server port. If the port is set to '0', the server will not run. (default 9000)
+            Web server port. If the port is set to '0', the server will not run.  (default 9000)
       -s	Save HTTP event in server
-      -v	Show more message (default true)
+      -v	Show verbose message (default true)
 
-## 说明 / License
 
-This project is licensed under the terms of the MIT license.
+Example: print captured requests to stdout:
 
-有任何疑问请及时联系我，期待您的反馈。
+      $ ./netgraph -i en0 -o=stdout
+      2018/07/26 10:33:24 open live on device "en0", bpf "tcp port 80"
+      [2018-07-26 10:33:34.873] #0 Request 192.168.1.50:60448->93.184.216.34:80
+      GET / HTTP/1.1
+      Host: www.example.com
+      Connection: keep-alive
+      Pragma: no-cache
+      Cache-Control: no-cache
+      Upgrade-Insecure-Requests: 1
+      User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36
+      Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+      Accept-Encoding: gzip, deflate
+      Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7
+
+      content(0)
+
+## License
+
+[MIT](https://opensource.org/licenses/MIT)
+
 
