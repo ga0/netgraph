@@ -8,7 +8,7 @@ Netgraph is a packet sniffer tool that captures all HTTP requests/responses, and
 
 ![Screenshot](https://raw.githubusercontent.com/ga0/netgraph/master/screenshot.png)
 
-You can run Negraph in your linux server without desktop environment installed, and monitor http requests/responses in your laptop's browser.
+You can run Netgraph in your linux server without desktop environment installed, and monitor http requests/responses in your laptop's browser.
 
 ## Compile, Install, Run
 
