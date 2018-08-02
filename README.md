@@ -1,4 +1,5 @@
 ![](https://travis-ci.com/ga0/netgraph.svg?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ga0/netgraph)](https://goreportcard.com/report/github.com/ga0/netgraph)
 ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)
 
 # Netgraph
