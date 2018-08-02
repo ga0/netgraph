@@ -252,7 +252,7 @@ func (p *EventPrinter) PushEvent(e interface{}) {
 			p.printHTTPResponseEvent(v)
 		}
 	default:
-		log.Printf("Unkown event: %v", e)
+		log.Printf("Unknown event: %v", e)
 	}
 }
 
