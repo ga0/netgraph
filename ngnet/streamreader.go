@@ -4,13 +4,26 @@ import (
 	"bytes"
 	"errors"
 	"time"
-
-	"github.com/google/gopacket/tcpassembly"
 )
+
+// StreamDataBlock is copied from tcpassembly.Reassembly
+type StreamDataBlock struct {
+	Bytes []byte
+	Seen  time.Time
+}
+
+// NewStreamDataBlock create a new StreamDataBlock
+func NewStreamDataBlock(bytes []byte, seen time.Time) *StreamDataBlock {
+	b := new(StreamDataBlock)
+	b.Bytes = make([]byte, len(bytes))
+	copy(b.Bytes, bytes[:])
+	b.Seen = seen
+	return b
+}
 
 // StreamReader read data from tcp stream
 type StreamReader struct {
-	src      chan tcpassembly.Reassembly
+	src      chan *StreamDataBlock
 	stopCh   chan interface{}
 	buffer   *bytes.Buffer
 	lastSeen time.Time
@@ -21,7 +34,7 @@ func NewStreamReader() *StreamReader {
 	r := new(StreamReader)
 	r.stopCh = make(chan interface{})
 	r.buffer = bytes.NewBuffer([]byte(""))
-	r.src = make(chan tcpassembly.Reassembly, 32)
+	r.src = make(chan *StreamDataBlock, 32)
 	return r
 }
 
@@ -56,5 +69,7 @@ func (s *StreamReader) Next(n int) ([]byte, error) {
 			return nil, err
 		}
 	}
-	return s.buffer.Next(n), nil
+	dst := make([]byte, n)
+	copy(dst, s.buffer.Next(n))
+	return dst, nil
 }

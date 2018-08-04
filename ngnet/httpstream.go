@@ -71,7 +71,7 @@ func (s httpStream) Reassembled(rs []tcpassembly.Reassembly) {
 		case <-s.reader.stopCh:
 			*s.bad = true
 			return
-		case s.reader.src <- r:
+		case s.reader.src <- NewStreamDataBlock(r.Bytes, r.Seen):
 		case <-ticker:
 			// Sometimes pcap only captured HTTP response with no request!
 			// Let's wait few seconds to avoid dead lock.
