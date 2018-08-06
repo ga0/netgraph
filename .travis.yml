@@ -6,4 +6,7 @@ before_install:
   - sudo apt-get install -y libpcap-dev
 
 script: 
-  - go build -v
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
