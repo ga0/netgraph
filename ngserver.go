@@ -66,21 +66,29 @@ func NewNGClient(ws *websocket.Conn, server *NGServer) *NGClient {
 
 // NGServer is a http server which push captured HTTPEvent to the front end
 type NGServer struct {
-	addr            string
-	staticFileDir   string
-	connectedClient map[*websocket.Conn]*NGClient
-	eventBuffer     []interface{}
-	saveEvent       bool
-	wg              sync.WaitGroup
+	addr                 string
+	staticFileDir        string
+	connectedClient      map[*websocket.Conn]*NGClient
+	connectedClientMutex *sync.Mutex
+	eventBuffer          []interface{}
+	saveEvent            bool
+	wg                   sync.WaitGroup
 }
 
 func (s *NGServer) websocketHandler(ws *websocket.Conn) {
 	c := NewNGClient(ws, s)
+
+	s.connectedClientMutex.Lock()
 	s.connectedClient[ws] = c
+	s.connectedClientMutex.Unlock()
+
 	go c.transmitEvents()
 	c.recvAndProcessCommand()
 	c.close()
+
+	s.connectedClientMutex.Lock()
 	delete(s.connectedClient, ws)
+	s.connectedClientMutex.Unlock()
 }
 
 // PushEvent dispatches the event received from ngnet to all clients connected with websocket.
@@ -88,9 +96,11 @@ func (s *NGServer) PushEvent(e interface{}) {
 	if s.saveEvent {
 		s.eventBuffer = append(s.eventBuffer, e)
 	}
+	s.connectedClientMutex.Lock()
 	for _, c := range s.connectedClient {
 		c.eventChan <- e
 	}
+	s.connectedClientMutex.Unlock()
 }
 
 // Wait waits for serving
@@ -126,6 +136,14 @@ func (s *NGServer) handleStaticFile(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(c))
 }
 
+func (s *NGServer) listenAndServe() {
+	defer s.wg.Done()
+	err := http.ListenAndServe(s.addr, nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
 // Serve the web page
 func (s *NGServer) Serve() {
 	http.Handle("/data", websocket.Handler(s.websocketHandler))
@@ -142,11 +160,7 @@ func (s *NGServer) Serve() {
 		http.HandleFunc("/", s.handleStaticFile)
 	}
 	s.wg.Add(1)
-	defer s.wg.Done()
-	err = http.ListenAndServe(s.addr, nil)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	go s.listenAndServe()
 }
 
 // NewNGServer creates NGServer
@@ -154,6 +168,7 @@ func NewNGServer(addr string, saveEvent bool) *NGServer {
 	s := new(NGServer)
 	s.addr = addr
 	s.connectedClient = make(map[*websocket.Conn]*NGClient)
+	s.connectedClientMutex = &sync.Mutex{}
 	s.saveEvent = saveEvent
 	return s
 }

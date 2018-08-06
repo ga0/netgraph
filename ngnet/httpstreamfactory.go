@@ -2,6 +2,7 @@ package ngnet
 
 import (
 	"sync"
+	"sync/atomic"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/tcpassembly"
@@ -9,7 +10,7 @@ import (
 
 // HTTPStreamFactory implements StreamFactory interface for tcpassembly
 type HTTPStreamFactory struct {
-	runningStream *uint
+	runningStream *int32
 	wg            *sync.WaitGroup
 	seq           *uint
 	uniStreams    *map[streamKey]*httpStreamPair
@@ -25,7 +26,7 @@ func NewHTTPStreamFactory(out chan<- interface{}) HTTPStreamFactory {
 	f.uniStreams = new(map[streamKey]*httpStreamPair)
 	*f.uniStreams = make(map[streamKey]*httpStreamPair)
 	f.eventChan = out
-	f.runningStream = new(uint)
+	f.runningStream = new(int32)
 	return f
 }
 
@@ -35,16 +36,15 @@ func (f HTTPStreamFactory) Wait() {
 }
 
 // RunningStreamCount get the running stream count
-func (f *HTTPStreamFactory) RunningStreamCount() uint {
-	return *f.runningStream
+func (f *HTTPStreamFactory) RunningStreamCount() int32 {
+	return atomic.LoadInt32(f.runningStream)
 }
 
 func (f *HTTPStreamFactory) runStreamPair(streamPair *httpStreamPair) {
-	f.wg.Add(1)
-	*f.runningStream++
+	atomic.AddInt32(f.runningStream, 1)
 
 	defer f.wg.Done()
-	defer func() { *f.runningStream-- }()
+	defer func() { atomic.AddInt32(f.runningStream, -1) }()
 	streamPair.run()
 }
 
@@ -68,6 +68,7 @@ func (f HTTPStreamFactory) New(netFlow, tcpFlow gopacket.Flow) (ret tcpassembly.
 		streamPair.upStream = &s
 		(*f.uniStreams)[key] = streamPair
 		*f.seq++
+		f.wg.Add(1)
 		go f.runStreamPair(streamPair)
 		ret = s
 	}

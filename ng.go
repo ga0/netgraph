@@ -57,7 +57,7 @@ func initEventHandlers() {
 	if *bindingPort != 0 {
 		addr := fmt.Sprintf(":%d", *bindingPort)
 		ngserver := NewNGServer(addr, *saveEvent)
-		go ngserver.Serve()
+		ngserver.Serve()
 		handlers = append(handlers, ngserver)
 	}
 
