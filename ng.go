@@ -8,6 +8,9 @@ import (
 	"os"
 	"time"
 
+	"nggraph/handlers"
+	"nggraph/ngdns"
+
 	"github.com/ga0/netgraph/ngnet"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -29,13 +32,27 @@ var saveEvent = flag.Bool("s", false, "Save HTTP event in server")
 
 var verbose = flag.Bool("v", true, "Show more message")
 
+var dnsDevice = flag.String("dnsDevice", "", "Set DNS device to monitoring")
+
+var (
+	devName    string
+	es_index   string
+	es_docType string
+	es_server  string
+	err        error
+	handle     *pcap.Handle
+	InetAddr   string
+	SrcIP      string
+	DstIP      string
+)
+
 // NGHTTPEventHandler handle HTTP events
 type NGHTTPEventHandler interface {
 	PushEvent(interface{})
 	Wait()
 }
 
-var handlers []NGHTTPEventHandler
+var localHandlers []NGHTTPEventHandler
 
 func init() {
 	flag.Parse()
@@ -58,24 +75,27 @@ func initEventHandlers() {
 		addr := fmt.Sprintf(":%d", *bindingPort)
 		ngserver := NewNGServer(addr, *saveEvent)
 		ngserver.Serve()
-		handlers = append(handlers, ngserver)
+		localHandlers = append(localHandlers, ngserver)
 	}
 
 	if *outputHTTP != "" {
 		p := NewEventPrinter(*outputHTTP)
-		handlers = append(handlers, p)
+		localHandlers = append(localHandlers, p)
 	}
+
+	dnsEvent := handlers.NewDnsEventPrinterHandler("")
+	localHandlers = append(localHandlers, dnsEvent)
 }
 
-func autoSelectDev() string {
+func autoSelectDev() (string, string) {
 	ifs, err := pcap.FindAllDevs()
 	if err != nil {
 		log.Fatalln(err)
 	}
 	var available []string
+	var addrs []string
 	for _, i := range ifs {
 		addrFound := false
-		var addrs []string
 		for _, addr := range i.Addresses {
 			if addr.IP.IsLoopback() ||
 				addr.IP.IsMulticast() ||
@@ -91,9 +111,9 @@ func autoSelectDev() string {
 		}
 	}
 	if len(available) > 0 {
-		return available[0]
+		return available[1], addrs[1]
 	}
-	return ""
+	return "", ""
 }
 
 func packetSource() *gopacket.PacketSource {
@@ -107,7 +127,7 @@ func packetSource() *gopacket.PacketSource {
 	}
 
 	if *device == "" {
-		*device = autoSelectDev()
+		*device, _ = autoSelectDev()
 		if *device == "" {
 			log.Fatalln("no device to capture")
 		}
@@ -264,24 +284,120 @@ func runEventHandler(eventChan <-chan interface{}) {
 		if e == nil {
 			break
 		}
-		for _, h := range handlers {
+		for _, h := range localHandlers {
 			h.PushEvent(e)
 		}
 	}
 
-	for _, h := range handlers {
+	for _, h := range localHandlers {
 		h.Wait()
 	}
 }
 
-/*
-   create client.go
-*/
-//go:generate python embed_html.py
+func runNGDns(eventChan chan<- interface{}) {
+	var eth layers.Ethernet
+	var ip4 layers.IPv4
+	var ip6 layers.IPv6
+	var tcp layers.TCP
+	var udp layers.UDP
+	var dns layers.DNS
+
+	var payload gopacket.Payload
+
+	devName, InetAddr = autoSelectDev()
+
+	handle, err = pcap.OpenLive(devName, 1600, false, pcap.BlockForever)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer handle.Close()
+
+	// Set filter
+	var filter string = "port 53 and src host " + InetAddr
+	fmt.Println("    Filter: ", filter)
+	err := handle.SetBPFFilter(filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	parser := gopacket.NewDecodingLayerParser(layers.LayerTypeEthernet, &eth, &ip4, &ip6, &tcp, &udp, &dns, &payload)
+
+	decodedLayers := make([]gopacket.LayerType, 0, 10)
+	for {
+		data, _, err := handle.ReadPacketData()
+		if err != nil {
+			fmt.Println("Error reading packet data: ", err)
+			continue
+		}
+
+		err = parser.DecodeLayers(data, &decodedLayers)
+		for _, typ := range decodedLayers {
+			switch typ {
+			case layers.LayerTypeIPv4:
+				SrcIP = ip4.SrcIP.String()
+				DstIP = ip4.DstIP.String()
+			case layers.LayerTypeIPv6:
+				SrcIP = ip6.SrcIP.String()
+				DstIP = ip6.DstIP.String()
+			case layers.LayerTypeDNS:
+				dnsOpCode := int(dns.OpCode)
+				dnsResponseCode := int(dns.ResponseCode)
+				dnsANCount := int(dns.ANCount)
+
+				if (dnsANCount == 0 && dnsResponseCode == 0) || (dnsANCount > 0) {
+
+					dnsTest := ngdns.DNSRequestEvent{
+						ClientAddr: "dns client addr",
+						ServerAddr: "dns server addr",
+						Method:     "dns method",
+						URI:        "http dns uri",
+						Version:    "1.0.0",
+					}
+
+					eventChan <- dnsTest
+
+					continue
+
+					fmt.Println("————————")
+					fmt.Println("  DNS Record Detected")
+
+					fmt.Println("  DNS ")
+					fmt.Println("    ID: ", dns.ID)
+					fmt.Println("    QR: ", dns.QR)
+					fmt.Println("    OpCode: ", dnsOpCode)
+					fmt.Println("    ResponseCode: ", dns.ResponseCode.String())
+
+					for _, dnsQuestion := range dns.Questions {
+
+						fmt.Println("  DNS Question")
+						fmt.Println("    Name: ", string(dnsQuestion.Name))
+						fmt.Println("    Type: ", dnsQuestion.Type)
+						fmt.Println("    Class: ", dnsQuestion.Class.String())
+					}
+
+					for _, dnsAnswer := range dns.Answers {
+
+						fmt.Println("  DNS Answer")
+						fmt.Println("    Name: ", string(dnsAnswer.Name))
+						fmt.Println("    Type: ", dnsAnswer.Type)
+						fmt.Println("    Class: ", dnsAnswer.Class.String())
+						fmt.Println("    Data length: ", dnsAnswer.DataLength)
+					}
+				}
+
+			}
+		}
+
+		if err != nil {
+			fmt.Println("  Error encountered:", err)
+		}
+	}
+}
 
 func main() {
 	initEventHandlers()
 	eventChan := make(chan interface{}, 1024)
 	go runNGNet(packetSource(), eventChan)
+	go runNGDns(eventChan)
 	runEventHandler(eventChan)
 }
