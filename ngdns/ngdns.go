@@ -10,7 +10,7 @@ type DNSEvent struct {
 	ID           uint16
 	QR           bool
 	OpCode       int
-	ResponseCose string
+	ResponseCode string
 	Questions    []DNSQuestion
 	Answers      []DNSAnswer
 	StreamSeq    string

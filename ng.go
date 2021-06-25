@@ -32,18 +32,11 @@ var saveEvent = flag.Bool("s", false, "Save HTTP event in server")
 
 var verbose = flag.Bool("v", true, "Show more message")
 
-var dnsDevice = flag.String("dnsDevice", "", "Set DNS device to monitoring")
-
 var (
-	devName    string
-	es_index   string
-	es_docType string
-	es_server  string
-	err        error
-	handle     *pcap.Handle
-	InetAddr   string
-	SrcIP      string
-	DstIP      string
+	err    error
+	handle *pcap.Handle
+	SrcIP  string
+	DstIP  string
 )
 
 // NGHTTPEventHandler handle HTTP events
@@ -87,7 +80,7 @@ func initEventHandlers() {
 	localHandlers = append(localHandlers, dnsEvent)
 }
 
-func autoSelectDev() (string, string) {
+func autoSelectDev() string {
 	ifs, err := pcap.FindAllDevs()
 	if err != nil {
 		log.Fatalln(err)
@@ -111,9 +104,9 @@ func autoSelectDev() (string, string) {
 		}
 	}
 	if len(available) > 0 {
-		return available[1], addrs[1]
+		return available[1]
 	}
-	return "", ""
+	return ""
 }
 
 func packetSource() *gopacket.PacketSource {
@@ -127,7 +120,7 @@ func packetSource() *gopacket.PacketSource {
 	}
 
 	if *device == "" {
-		*device, _ = autoSelectDev()
+		*device = autoSelectDev()
 		if *device == "" {
 			log.Fatalln("no device to capture")
 		}
@@ -304,16 +297,21 @@ func runNGDns(eventChan chan<- interface{}) {
 
 	var payload gopacket.Payload
 
-	devName, InetAddr = autoSelectDev()
+	if *device == "" {
+		*device = autoSelectDev()
+		if *device == "" {
+			log.Fatalln("no device to capture")
+		}
+	}
 
-	handle, err = pcap.OpenLive(devName, 1600, false, pcap.BlockForever)
+	handle, err = pcap.OpenLive(*device, 1600, false, pcap.BlockForever)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer handle.Close()
 
 	// Set filter
-	var filter string = "port 53 and src host " + InetAddr
+	var filter string = "port 53"
 	fmt.Println("    Filter: ", filter)
 	err := handle.SetBPFFilter(filter)
 	if err != nil {
@@ -351,7 +349,7 @@ func runNGDns(eventChan chan<- interface{}) {
 						ID:           dns.ID,
 						QR:           dns.QR,
 						OpCode:       dnsOpCode,
-						ResponseCose: dns.ResponseCode.String(),
+						ResponseCode: dns.ResponseCode.String(),
 						Questions:    make([]ngdns.DNSQuestion, 0),
 						Answers:      make([]ngdns.DNSAnswer, 0),
 					}
