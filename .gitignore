@@ -4,3 +4,6 @@ test.pcap
 .idea/
 debug
 .DS_Store
+nggraph
+nggraph.exe
+ngnet/dump*
