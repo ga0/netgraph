@@ -346,43 +346,34 @@ func runNGDns(eventChan chan<- interface{}) {
 
 				if (dnsANCount == 0 && dnsResponseCode == 0) || (dnsANCount > 0) {
 
-					dnsTest := ngdns.DNSRequestEvent{
-						ClientAddr: "dns client addr",
-						ServerAddr: "dns server addr",
-						Method:     "dns method",
-						URI:        "http dns uri",
-						Version:    "1.0.0",
+					dnsEvent := ngdns.DNSEvent{
+						Type:         "DNSEvent",
+						ID:           dns.ID,
+						QR:           dns.QR,
+						OpCode:       dnsOpCode,
+						ResponseCose: dns.ResponseCode.String(),
+						Questions:    make([]ngdns.DNSQuestion, 0),
+						Answers:      make([]ngdns.DNSAnswer, 0),
 					}
 
-					eventChan <- dnsTest
-
-					continue
-
-					fmt.Println("————————")
-					fmt.Println("  DNS Record Detected")
-
-					fmt.Println("  DNS ")
-					fmt.Println("    ID: ", dns.ID)
-					fmt.Println("    QR: ", dns.QR)
-					fmt.Println("    OpCode: ", dnsOpCode)
-					fmt.Println("    ResponseCode: ", dns.ResponseCode.String())
-
 					for _, dnsQuestion := range dns.Questions {
-
-						fmt.Println("  DNS Question")
-						fmt.Println("    Name: ", string(dnsQuestion.Name))
-						fmt.Println("    Type: ", dnsQuestion.Type)
-						fmt.Println("    Class: ", dnsQuestion.Class.String())
+						dnsEvent.Questions = append(dnsEvent.Questions, ngdns.DNSQuestion{
+							Name:  string(dnsQuestion.Name),
+							Type:  dnsQuestion.Type.String(),
+							Class: dnsQuestion.Class.String(),
+						})
 					}
 
 					for _, dnsAnswer := range dns.Answers {
-
-						fmt.Println("  DNS Answer")
-						fmt.Println("    Name: ", string(dnsAnswer.Name))
-						fmt.Println("    Type: ", dnsAnswer.Type)
-						fmt.Println("    Class: ", dnsAnswer.Class.String())
-						fmt.Println("    Data length: ", dnsAnswer.DataLength)
+						dnsEvent.Answers = append(dnsEvent.Answers, ngdns.DNSAnswer{
+							Name:       string(dnsAnswer.Name),
+							Type:       dnsAnswer.Type.String(),
+							Class:      dnsAnswer.Class.String(),
+							DataLength: dnsAnswer.DataLength,
+						})
 					}
+
+					eventChan <- dnsEvent
 				}
 
 			}
