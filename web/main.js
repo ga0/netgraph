@@ -1,16 +1,16 @@
-angular.module('ngFilter', []).filter('reqFilter', function() {
-    return function(items, filterType, pattern) {
+angular.module('ngFilter', []).filter('reqFilter', function () {
+    return function (items, filterType, pattern) {
         var result = [];
         if (!filterType || !pattern)
             return items;
 
         function getMatchFunction() {
             if (filterType == "URI") {
-                return function(item) {
+                return function (item) {
                     return item.URI.indexOf(pattern) != -1;
                 };
             } else if (filterType == "RequestHeader") {
-                return function(item) {
+                return function (item) {
                     for (var i = 0; i < item.Headers.length; ++i) {
                         var h = item.Headers[i]
                         if (h.Name.indexOf(pattern) != -1)
@@ -20,7 +20,7 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
                     }
                 };
             } else if (filterType == "ResponseHeader") {
-                return function(item) {
+                return function (item) {
                     if (!item.Response)
                         return false;
                     for (var i = 0; i < item.Response.Headers.length; ++i) {
@@ -32,7 +32,7 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
                     }
                 };
             } else if (filterType == "Cookie") {
-                return function(item) {
+                return function (item) {
                     for (var i = 0; i < item.Headers.length; ++i) {
                         var h = item.Headers[i];
                         if (h.Name == "Cookie") {
@@ -41,17 +41,17 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
                     }
                 };
             } else if (filterType == "Code") {
-                return function(item) {
+                return function (item) {
                     if (!item.Response)
                         return false;
                     return item.Response.Code == parseInt(pattern)
                 };
             } else if (filterType == "RequestBody") {
-                return function(item) {
+                return function (item) {
                     return item.Body.indexOf(pattern) != -1;
                 };
             } else if (filterType == "ResponseBody") {
-                return function(item) {
+                return function (item) {
                     if (!item.Response)
                         return false;
                     return item.Response.Body.indexOf(pattern) != -1;
@@ -69,22 +69,18 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
     };
 });
 var app = angular.module('netgraph', ['angular-websocket', 'ngFilter'])
-app.factory('netdata', function($websocket) {
+app.factory('netdata', function ($websocket) {
     var dataStream = $websocket("ws://" + location.host + "/data");
-    var streams = {};
     var reqs = [];
-    dataStream.onMessage(function(message) {
+    var reqsDns = [];
+    dataStream.onMessage(function (message) {
         var e = JSON.parse(message.data);
-        if (!(e.StreamSeq in streams)) {
-            streams[e.StreamSeq] = [];
-        }
-        var stream = streams[e.StreamSeq];
+
         if (e.Type == "HTTPRequest") {
             e.Start = new Date(e.Start)
             if (e.Body) {
                 e.Body = Base64.decode(e.Body)
             }
-            stream.push(e);
             reqs.push(e);
             //add Host
             for (var i = 0; i < e.Headers.length; ++i) {
@@ -98,9 +94,9 @@ app.factory('netdata', function($websocket) {
             if (e.Body) {
                 e.Body = Base64.decode(e.Body)
             }
-            
+
             if (stream.length > 0) {
-                var req = stream[stream.length-1]
+                var req = stream[stream.length - 1]
                 if (req.Response) {
                     console.error("duplicate response in stream #" + e.StreamSeq + " URI:" + req.URI
                         + "\nold:", req.Response, "\nnew:", e)
@@ -109,12 +105,17 @@ app.factory('netdata', function($websocket) {
                     req.Duration = new Date(e.End) - req.Start;
                 }
             }
+        } else if (e.Type == "DNSEvent") {
+            e.Start = new Date(e.Start)
+
+            console.log(e);
+            reqsDns.push(e);
         }
     });
     var data = {
         reqs: reqs,
-        streams: streams,
-        sync: function() {
+        reqsDns: reqsDns,
+        sync: function () {
             dataStream.send("sync");
         }
     };
@@ -122,7 +123,8 @@ app.factory('netdata', function($websocket) {
 })
 app.controller('HttpListCtrl', function ($scope, netdata) {
     $scope.reqs = netdata.reqs;
-    $scope.showDetail = function($event, req) {
+    $scope.reqsDns = netdata.reqsDns;
+    $scope.showDetail = function ($event, req) {
         $scope.selectedReq = req;
         var tr = $event.currentTarget;
         if ($scope.selectedRow) {
@@ -131,7 +133,7 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
         $scope.selectedRow = tr;
         $(tr).attr("style", "background-color: lightgreen");
     }
-    $scope.getHost = function(req) {
+    $scope.getHost = function (req) {
         for (var i = 0; i < req.Headers.length; ++i) {
             var h = req.Headers[i];
             if (h.Name == "Host") {
