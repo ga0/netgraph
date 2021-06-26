@@ -133,6 +133,15 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
         $scope.selectedRow = tr;
         $(tr).attr("style", "background-color: lightgreen");
     }
+    $scope.showDnsDetail = function ($event, reqDns) {
+        $scope.selectedDnsReq = reqDns;
+        var tr = $event.currentTarget;
+        if ($scope.selectedRow) {
+            $($scope.selectedRow).attr("style", "");
+        }
+        $scope.selectedRow = tr;
+        $(tr).attr("style", "background-color: lightgreen");
+    }
     $scope.getHost = function (req) {
         for (var i = 0; i < req.Headers.length; ++i) {
             var h = req.Headers[i];

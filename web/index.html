@@ -97,15 +97,68 @@
             <table width="100%">
                 <thead>
                     <tr>
-                        <th width="5%">Type</th>
-                        <th width="15%">ResponseCode</th>
+                        <th width="20%">Type</th>
+                        <th width="20%">ID</th>
+                        <th width="20%">QR</th>
+                        <th width="20%">OpCode</th>
+                        <th width="20%">ResponseCode</th>
                     </tr>
                 </thead>
-                <tr ng-repeat="req in reqsDns">
+                <tr ng-repeat="req in reqsDns" ng-click="showDnsDetail($event, req)">
                     <td>{{ req.Type }}</td>
+                    <td>{{ req.ID }}</td>
+                    <td>{{ req.QR }}</td>
+                    <td>{{ req.OpCode }}</td>
                     <td style="text-align:center">{{ req.ResponseCode }}</td>
                 </tr>
             </table>
         </div>
-    </body>
+        <div id="detail" style="width:100%">
+            <div id="request-first-line" class="first-line">
+                {{ selectedDnsReq.ID }}
+            </div>
+            <div id="request-detail" class="http-detail" style="float: left;">
+                <h4 style="text-align:center">Questions</h4>
+                <div id="request-head" class="head">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <th width="60%">Name</th>
+                                <th width="20%">Type</th>
+                                <th width="20%">Class</th>
+                            </tr>
+                        </thead>
+                        <tr ng-repeat="q in selectedDnsReq.Questions">
+                            <td width="60%">{{ q.Name }}</td>
+                            <td width="20%" style="text-align:center">{{ q.Type }}</td>
+                            <td width="20%" style="text-align:center">{{ q.Class }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <p id="request-body" class="body">{{ selectedReq.Body }}</p>
+            </div>
+            <div id="response-detail" class="http-detail" style="float: right;">
+                <h4 style="text-align:center">Answers</h4>
+                <div id="response-head" class="head">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <th width="50%">Name</th>
+                                <th width="13%">Type</th>
+                                <th width="13%">Class</th>
+                                <th width="13%">Data Length</th>
+                            </tr>
+                        </thead>
+                        <tr ng-repeat="a in selectedDnsReq.Answers">
+                            <td width="25%">{{ a.Name }}</td>
+                            <td width="25%" style="text-align:center">{{ a.Type }}</td>
+                            <td width="25%" style="text-align:center">{{ a.Class }}</td>
+                            <td width="25%" style="text-align:center">{{ a.DataLength }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+</body>
+
 </html>

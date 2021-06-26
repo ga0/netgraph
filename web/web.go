@@ -102,17 +102,70 @@ var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
             <table width="100%">
                 <thead>
                     <tr>
-                        <th width="5%">Type</th>
-                        <th width="15%">ResponseCode</th>
+                        <th width="20%">Type</th>
+                        <th width="20%">ID</th>
+                        <th width="20%">QR</th>
+                        <th width="20%">OpCode</th>
+                        <th width="20%">ResponseCode</th>
                     </tr>
                 </thead>
-                <tr ng-repeat="req in reqsDns">
+                <tr ng-repeat="req in reqsDns" ng-click="showDnsDetail($event, req)">
                     <td>{{ req.Type }}</td>
+                    <td>{{ req.ID }}</td>
+                    <td>{{ req.QR }}</td>
+                    <td>{{ req.OpCode }}</td>
                     <td style="text-align:center">{{ req.ResponseCode }}</td>
                 </tr>
             </table>
         </div>
-    </body>
+        <div id="detail" style="width:100%">
+            <div id="request-first-line" class="first-line">
+                {{ selectedDnsReq.ID }}
+            </div>
+            <div id="request-detail" class="http-detail" style="float: left;">
+                <h4 style="text-align:center">Questions</h4>
+                <div id="request-head" class="head">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <th width="60%">Name</th>
+                                <th width="20%">Type</th>
+                                <th width="20%">Class</th>
+                            </tr>
+                        </thead>
+                        <tr ng-repeat="q in selectedDnsReq.Questions">
+                            <td width="60%">{{ q.Name }}</td>
+                            <td width="20%" style="text-align:center">{{ q.Type }}</td>
+                            <td width="20%" style="text-align:center">{{ q.Class }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <p id="request-body" class="body">{{ selectedReq.Body }}</p>
+            </div>
+            <div id="response-detail" class="http-detail" style="float: right;">
+                <h4 style="text-align:center">Answers</h4>
+                <div id="response-head" class="head">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <th width="50%">Name</th>
+                                <th width="13%">Type</th>
+                                <th width="13%">Class</th>
+                                <th width="13%">Data Length</th>
+                            </tr>
+                        </thead>
+                        <tr ng-repeat="a in selectedDnsReq.Answers">
+                            <td width="25%">{{ a.Name }}</td>
+                            <td width="25%" style="text-align:center">{{ a.Type }}</td>
+                            <td width="25%" style="text-align:center">{{ a.Class }}</td>
+                            <td width="25%" style="text-align:center">{{ a.DataLength }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+</body>
+
 </html>.requests {
     height: 400px;
     overflow: scroll;
@@ -291,6 +344,15 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
     $scope.reqsDns = netdata.reqsDns;
     $scope.showDetail = function ($event, req) {
         $scope.selectedReq = req;
+        var tr = $event.currentTarget;
+        if ($scope.selectedRow) {
+            $($scope.selectedRow).attr("style", "");
+        }
+        $scope.selectedRow = tr;
+        $(tr).attr("style", "background-color: lightgreen");
+    }
+    $scope.showDnsDetail = function ($event, reqDns) {
+        $scope.selectedDnsReq = reqDns;
         var tr = $event.currentTarget;
         if ($scope.selectedRow) {
             $($scope.selectedRow).attr("style", "");
@@ -1138,13 +1200,13 @@ type contentIndexStruct struct {
 	end   int
 }
 
-var contentIndex = map[string]contentIndexStruct{"/lib/jquery-1.9.1.min.js": {174255, 266884},
-	"/index.html":               {0, 4845},
-	"/lib/angular-websocket.js": {10977, 23311},
-	"/main.js":                  {5727, 10977},
-	"/lib/angular.min.js":       {23311, 170370},
-	"/main.css":                 {4845, 5727},
-	"/lib/base64.js":            {170370, 174255},
+var contentIndex = map[string]contentIndexStruct{"/lib/jquery-1.9.1.min.js": {177219, 269848},
+	"/index.html":               {0, 7478},
+	"/lib/angular-websocket.js": {13941, 26275},
+	"/main.js":                  {8360, 13941},
+	"/lib/angular.min.js":       {26275, 173334},
+	"/main.css":                 {7478, 8360},
+	"/lib/base64.js":            {173334, 177219},
 }
 
 func GetContent(uri string) ([]byte, error) {
