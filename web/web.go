@@ -328,7 +328,6 @@ app.factory('netdata', function ($websocket) {
         } else if (e.Type == "DNSEvent") {
             e.Start = new Date(e.Start)
 
-            console.log(e);
             reqsDns.push(e);
         }
     });
@@ -1200,13 +1199,13 @@ type contentIndexStruct struct {
     begin int
     end int
 }
-var contentIndex = map[string]contentIndexStruct{"/lib/jquery-1.9.1.min.js":{173447,266076},
+var contentIndex = map[string]contentIndexStruct{"/lib/jquery-1.9.1.min.js":{173419,266048},
 "/index.html":{882,8473},
-"/lib/angular.min.js":{26388,173447},
-"/main.js":{8473,14054},
+"/lib/angular.min.js":{26360,173419},
+"/main.js":{8473,14026},
 "/main.css":{0,882},
-"/lib/base64.js":{266076,269961},
-"/lib/angular-websocket.js":{14054,26388},
+"/lib/base64.js":{266048,269933},
+"/lib/angular-websocket.js":{14026,26360},
 }
 func GetContent(uri string) ([]byte, error) {
     if val, ok := contentIndex[uri]; ok {

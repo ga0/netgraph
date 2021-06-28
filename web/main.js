@@ -108,7 +108,6 @@ app.factory('netdata', function ($websocket) {
         } else if (e.Type == "DNSEvent") {
             e.Start = new Date(e.Start)
 
-            console.log(e);
             reqsDns.push(e);
         }
     });
