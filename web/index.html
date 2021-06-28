@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <div>
+    <div style="display: inline-block;">
         <h2>NetGraph</h2>
         Filter:
         <select ng-model="filterType">
@@ -92,6 +92,9 @@
                 <p id="response-body" class="body">{{ selectedReq.Response.Body }}</p>
             </div>
         </div>
+    </div>
+
+    <div style="display: inline-block; margin-top: 50px;">
         <h2>DNS</h2>
         <div class="requests">
             <table width="100%">
@@ -159,6 +162,7 @@
                 </div>
             </div>
         </div>
+    </div>
 </body>
 
 </html>
