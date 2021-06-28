@@ -1,94 +1,7 @@
 //auto generated - don't edit it
 package web
 import "errors"
-var content = []byte(`<html ng-app="netgraph" ng-controller="HttpListCtrl">
-    <head>
-        <title>[{{reqs.length}}] NetGraph</title>
-        <script src="/lib/jquery-1.9.1.min.js"></script>
-        <script src="/lib/base64.js"></script>
-        <script src="/lib/angular.min.js"></script>
-        <script src="/lib/angular-websocket.js"></script>
-        <script src="/main.js"></script>
-        <link href="/main.css" rel="stylesheet">
-    </head>
-    <body>
-        <h2>NetGraph</h2>
-        Filter:
-        <select ng-model="filterType">
-            <option value="URI">URI</option>
-            <option value="Cookie">Cookie</option>
-            <option value="Code">Code</option>
-            <option value="RequestHeader">Request Header</option>
-            <option value="ResponseHeader">Response Header</option>
-            <option value="RequestBody">Request Body</option>
-            <option value="ResponseBody">Response Body</option>
-        </select>
-        <input ng-model="pattern">
-        Sorted by:
-        <select ng-model="order">
-            <option value="Start">Start</option>
-            <option value="Host">Host</option>
-            <option value="Duration">Duration</option>
-            <option value="StreamSeq">Stream</option>
-            <option value="URI">URI</option>
-        </select>
-        Reverse<input type="checkbox" ng-model="reverse"/>
-        <div class="requests">
-            <table width="100%">
-                <thead>
-                    <tr>
-                    <th width="5%">Method</th>
-                    <th width="15%">Host</th>
-                    <th>URI</th>
-                    <th width="5%">Code</th>
-                    <th width="10%">Start</th>
-                    <th width="6%">Duration</th>
-                    <th width="5%">Stream#</th>
-                    </tr>
-                </thead>
-                <tr ng-repeat="req in reqs | reqFilter:filterType:pattern | orderBy:order:reverse" ng-click="showDetail($event, req)">
-                    <td>{{ req.Method }}</td>
-                    <td style="text-align:center">{{ req.Host }}</td>
-                    <td><a href="http://{{getHost(req)}}{{req.URI}}" target="_blank">{{ req.URI }}</a></td>
-                    <td style="text-align:center">{{ req.Response.Code }}</td>
-                    <td>{{ req.Start | date : 'HH:mm:ss.sss' }}</td>
-                    <td style="text-align:right">{{ req.Duration }} ms</td>
-                    <td style="text-align:center">{{ req.StreamSeq }}</td>
-                </tr>
-            </table>
-        </div>
-        <div id="detail" style="width:100%">
-            <div id="request-detail" class="http-detail" style="float: left;">
-                <div id="request-first-line" class="first-line">
-                    {{ selectedReq.Method }} {{ selectedReq.URI }} {{ selectedReq.Version }}
-                </div>
-                <div id="request-head" class="head">
-                    <table width="100%">
-                        <tr ng-repeat="h in selectedReq.Headers">
-                            <td width="30%">{{ h.Name }}</td>
-                            <td width="70%"><p class="break-all">{{ h.Value }}</p></td>
-                        </tr>
-                    </table>
-                </div>
-                <p id="request-body" class="body">{{ selectedReq.Body }}</p>
-            </div>
-            <div id="response-detail" class="http-detail" style="float: right;">
-                <div id="response-first-line" class="first-line">
-                    {{ selectedReq.Response.Version }} {{ selectedReq.Response.Code }} {{ selectedReq.Response.Reason }}
-                </div>
-                <div id="response-head" class="head">
-                    <table width="100%">
-                        <tr ng-repeat="h in selectedReq.Response.Headers">
-                            <td width="30%">{{ h.Name }}</td>
-                            <td width="70%"><p class="break-all">{{ h.Value }}</p></td>
-                        </tr>
-                    </table>
-                </div>
-                <p id="response-body" class="body">{{ selectedReq.Response.Body }}</p>
-            </div>
-        </div>
-    </body>
-</html>.requests {
+var content = []byte(`.requests {
     height: 400px;
     overflow: scroll;
 }
@@ -138,19 +51,186 @@ table tr:nth-child(even):hover {
 .first-line {
     font-weight: bold;
 }
-angular.module('ngFilter', []).filter('reqFilter', function() {
-    return function(items, filterType, pattern) {
+<html ng-app="netgraph" ng-controller="HttpListCtrl">
+
+<head>
+    <title>[{{reqs.length}}] NetGraph</title>
+    <script src="/lib/jquery-1.9.1.min.js"></script>
+    <script src="/lib/base64.js"></script>
+    <script src="/lib/angular.min.js"></script>
+    <script src="/lib/angular-websocket.js"></script>
+    <script src="/main.js"></script>
+    <link href="/main.css" rel="stylesheet">
+</head>
+
+<body>
+    <div style="display: inline-block;">
+        <h2>NetGraph</h2>
+        Filter:
+        <select ng-model="filterType">
+            <option value="URI">URI</option>
+            <option value="Cookie">Cookie</option>
+            <option value="Code">Code</option>
+            <option value="RequestHeader">Request Header</option>
+            <option value="ResponseHeader">Response Header</option>
+            <option value="RequestBody">Request Body</option>
+            <option value="ResponseBody">Response Body</option>
+        </select>
+        <input ng-model="pattern">
+        Sorted by:
+        <select ng-model="order">
+            <option value="Start">Start</option>
+            <option value="Host">Host</option>
+            <option value="Duration">Duration</option>
+            <option value="StreamSeq">Stream</option>
+            <option value="URI">URI</option>
+        </select>
+        Reverse<input type="checkbox" ng-model="reverse" />
+        <div class="requests">
+            <table width="100%">
+                <thead>
+                    <tr>
+                        <th width="5%">Method</th>
+                        <th width="15%">Host</th>
+                        <th>URI</th>
+                        <th width="5%">Code</th>
+                        <th width="10%">Start</th>
+                        <th width="6%">Duration</th>
+                        <th width="5%">Stream#</th>
+                    </tr>
+                </thead>
+                <tr ng-repeat="req in reqs | reqFilter:filterType:pattern | orderBy:order:reverse"
+                    ng-click="showDetail($event, req)">
+                    <td>{{ req.Method }}</td>
+                    <td style="text-align:center">{{ req.Host }}</td>
+                    <td><a href="http://{{getHost(req)}}{{req.URI}}" target="_blank">{{ req.URI }}</a></td>
+                    <td style="text-align:center">{{ req.Response.Code }}</td>
+                    <td>{{ req.Start | date : 'HH:mm:ss.sss' }}</td>
+                    <td style="text-align:right">{{ req.Duration }} ms</td>
+                    <td style="text-align:center">{{ req.StreamSeq }}</td>
+                </tr>
+            </table>
+        </div>
+        <div id="detail" style="width:100%">
+            <div id="request-detail" class="http-detail" style="float: left;">
+                <div id="request-first-line" class="first-line">
+                    {{ selectedReq.Method }} {{ selectedReq.URI }} {{ selectedReq.Version }}
+                </div>
+                <div id="request-head" class="head">
+                    <table width="100%">
+                        <tr ng-repeat="h in selectedReq.Headers">
+                            <td width="30%">{{ h.Name }}</td>
+                            <td width="70%">
+                                <p class="break-all">{{ h.Value }}</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <p id="request-body" class="body">{{ selectedReq.Body }}</p>
+            </div>
+            <div id="response-detail" class="http-detail" style="float: right;">
+                <div id="response-first-line" class="first-line">
+                    {{ selectedReq.Response.Version }} {{ selectedReq.Response.Code }} {{ selectedReq.Response.Reason }}
+                </div>
+                <div id="response-head" class="head">
+                    <table width="100%">
+                        <tr ng-repeat="h in selectedReq.Response.Headers">
+                            <td width="30%">{{ h.Name }}</td>
+                            <td width="70%">
+                                <p class="break-all">{{ h.Value }}</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <p id="response-body" class="body">{{ selectedReq.Response.Body }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: inline-block; margin-top: 50px;">
+        <h2>DNS</h2>
+        <div class="requests">
+            <table width="100%">
+                <thead>
+                    <tr>
+                        <th width="20%">Type</th>
+                        <th width="20%">ID</th>
+                        <th width="20%">QR</th>
+                        <th width="20%">OpCode</th>
+                        <th width="20%">ResponseCode</th>
+                    </tr>
+                </thead>
+                <tr ng-repeat="req in reqsDns" ng-click="showDnsDetail($event, req)">
+                    <td>{{ req.Type }}</td>
+                    <td>{{ req.ID }}</td>
+                    <td>{{ req.QR }}</td>
+                    <td>{{ req.OpCode }}</td>
+                    <td style="text-align:center">{{ req.ResponseCode }}</td>
+                </tr>
+            </table>
+        </div>
+        <div id="detail" style="width:100%">
+            <div id="request-first-line" class="first-line">
+                {{ selectedDnsReq.ID }}
+            </div>
+            <div id="request-detail" class="http-detail" style="float: left;">
+                <h4 style="text-align:center">Questions</h4>
+                <div id="request-head" class="head">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <th width="60%">Name</th>
+                                <th width="20%">Type</th>
+                                <th width="20%">Class</th>
+                            </tr>
+                        </thead>
+                        <tr ng-repeat="q in selectedDnsReq.Questions">
+                            <td width="60%">{{ q.Name }}</td>
+                            <td width="20%" style="text-align:center">{{ q.Type }}</td>
+                            <td width="20%" style="text-align:center">{{ q.Class }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <p id="request-body" class="body">{{ selectedReq.Body }}</p>
+            </div>
+            <div id="response-detail" class="http-detail" style="float: right;">
+                <h4 style="text-align:center">Answers</h4>
+                <div id="response-head" class="head">
+                    <table width="100%">
+                        <thead>
+                            <tr>
+                                <th width="50%">Name</th>
+                                <th width="13%">Type</th>
+                                <th width="13%">Class</th>
+                                <th width="13%">Data Length</th>
+                            </tr>
+                        </thead>
+                        <tr ng-repeat="a in selectedDnsReq.Answers">
+                            <td width="25%">{{ a.Name }}</td>
+                            <td width="25%" style="text-align:center">{{ a.Type }}</td>
+                            <td width="25%" style="text-align:center">{{ a.Class }}</td>
+                            <td width="25%" style="text-align:center">{{ a.DataLength }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>angular.module('ngFilter', []).filter('reqFilter', function () {
+    return function (items, filterType, pattern) {
         var result = [];
         if (!filterType || !pattern)
             return items;
 
         function getMatchFunction() {
             if (filterType == "URI") {
-                return function(item) {
+                return function (item) {
                     return item.URI.indexOf(pattern) != -1;
                 };
             } else if (filterType == "RequestHeader") {
-                return function(item) {
+                return function (item) {
                     for (var i = 0; i < item.Headers.length; ++i) {
                         var h = item.Headers[i]
                         if (h.Name.indexOf(pattern) != -1)
@@ -160,7 +240,7 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
                     }
                 };
             } else if (filterType == "ResponseHeader") {
-                return function(item) {
+                return function (item) {
                     if (!item.Response)
                         return false;
                     for (var i = 0; i < item.Response.Headers.length; ++i) {
@@ -172,7 +252,7 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
                     }
                 };
             } else if (filterType == "Cookie") {
-                return function(item) {
+                return function (item) {
                     for (var i = 0; i < item.Headers.length; ++i) {
                         var h = item.Headers[i];
                         if (h.Name == "Cookie") {
@@ -181,17 +261,17 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
                     }
                 };
             } else if (filterType == "Code") {
-                return function(item) {
+                return function (item) {
                     if (!item.Response)
                         return false;
                     return item.Response.Code == parseInt(pattern)
                 };
             } else if (filterType == "RequestBody") {
-                return function(item) {
+                return function (item) {
                     return item.Body.indexOf(pattern) != -1;
                 };
             } else if (filterType == "ResponseBody") {
-                return function(item) {
+                return function (item) {
                     if (!item.Response)
                         return false;
                     return item.Response.Body.indexOf(pattern) != -1;
@@ -209,22 +289,18 @@ angular.module('ngFilter', []).filter('reqFilter', function() {
     };
 });
 var app = angular.module('netgraph', ['angular-websocket', 'ngFilter'])
-app.factory('netdata', function($websocket) {
+app.factory('netdata', function ($websocket) {
     var dataStream = $websocket("ws://" + location.host + "/data");
-    var streams = {};
     var reqs = [];
-    dataStream.onMessage(function(message) {
+    var reqsDns = [];
+    dataStream.onMessage(function (message) {
         var e = JSON.parse(message.data);
-        if (!(e.StreamSeq in streams)) {
-            streams[e.StreamSeq] = [];
-        }
-        var stream = streams[e.StreamSeq];
+
         if (e.Type == "HTTPRequest") {
             e.Start = new Date(e.Start)
             if (e.Body) {
                 e.Body = Base64.decode(e.Body)
             }
-            stream.push(e);
             reqs.push(e);
             //add Host
             for (var i = 0; i < e.Headers.length; ++i) {
@@ -238,9 +314,9 @@ app.factory('netdata', function($websocket) {
             if (e.Body) {
                 e.Body = Base64.decode(e.Body)
             }
-            
+
             if (stream.length > 0) {
-                var req = stream[stream.length-1]
+                var req = stream[stream.length - 1]
                 if (req.Response) {
                     console.error("duplicate response in stream #" + e.StreamSeq + " URI:" + req.URI
                         + "\nold:", req.Response, "\nnew:", e)
@@ -249,12 +325,16 @@ app.factory('netdata', function($websocket) {
                     req.Duration = new Date(e.End) - req.Start;
                 }
             }
+        } else if (e.Type == "DNSEvent") {
+            e.Start = new Date(e.Start)
+
+            reqsDns.push(e);
         }
     });
     var data = {
         reqs: reqs,
-        streams: streams,
-        sync: function() {
+        reqsDns: reqsDns,
+        sync: function () {
             dataStream.send("sync");
         }
     };
@@ -262,7 +342,8 @@ app.factory('netdata', function($websocket) {
 })
 app.controller('HttpListCtrl', function ($scope, netdata) {
     $scope.reqs = netdata.reqs;
-    $scope.showDetail = function($event, req) {
+    $scope.reqsDns = netdata.reqsDns;
+    $scope.showDetail = function ($event, req) {
         $scope.selectedReq = req;
         var tr = $event.currentTarget;
         if ($scope.selectedRow) {
@@ -271,7 +352,16 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
         $scope.selectedRow = tr;
         $(tr).attr("style", "background-color: lightgreen");
     }
-    $scope.getHost = function(req) {
+    $scope.showDnsDetail = function ($event, reqDns) {
+        $scope.selectedDnsReq = reqDns;
+        var tr = $event.currentTarget;
+        if ($scope.selectedRow) {
+            $($scope.selectedRow).attr("style", "");
+        }
+        $scope.selectedRow = tr;
+        $(tr).attr("style", "background-color: lightgreen");
+    }
+    $scope.getHost = function (req) {
         for (var i = 0; i < req.Headers.length; ++i) {
             var h = req.Headers[i];
             if (h.Name == "Host") {
@@ -285,7 +375,389 @@ app.controller('HttpListCtrl', function ($scope, netdata) {
     $scope.order = "Start";
     netdata.sync();
 })
-/*
+(function() {
+  'use strict';
+
+  var noop = angular.noop;
+  var objectFreeze  = (Object.freeze) ? Object.freeze : noop;
+  var objectDefineProperty = Object.defineProperty;
+  var isString   = angular.isString;
+  var isFunction = angular.isFunction;
+  var isDefined  = angular.isDefined;
+  var isObject   = angular.isObject;
+  var isArray    = angular.isArray;
+  var forEach    = angular.forEach;
+  var arraySlice = Array.prototype.slice;
+  // ie8 wat
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(elt /*, from*/) {
+      var len = this.length >>> 0;
+      var from = Number(arguments[1]) || 0;
+      from = (from < 0) ? Math.ceil(from) : Math.floor(from);
+      if (from < 0) {
+        from += len;
+      }
+
+      for (; from < len; from++) {
+        if (from in this && this[from] === elt) { return from; }
+      }
+      return -1;
+    };
+  }
+
+  // $WebSocketProvider.$inject = ['$rootScope', '$q', '$timeout', '$websocketBackend'];
+  function $WebSocketProvider($rootScope, $q, $timeout, $websocketBackend) {
+
+    function $WebSocket(url, protocols, options) {
+      if (!options && isObject(protocols) && !isArray(protocols)) {
+        options = protocols;
+        protocols = undefined;
+      }
+
+      this.protocols = protocols;
+      this.url = url || 'Missing URL';
+      this.ssl = /(wss)/i.test(this.url);
+
+      // this.extensions = '';
+      // this.bufferedAmount = 0;
+      // this.trasnmitting = false;
+      // this.buffer = [];
+
+      // TODO: refactor options to use isDefined
+      this.scope                       = options && options.scope                      || $rootScope;
+      this.rootScopeFailover           = options && options.rootScopeFailover          && true;
+      this.useApplyAsync               = options && options.useApplyAsync              || false;
+      this.initialTimeout              = options && options.initialTimeout             || 500; // 500ms
+      this.maxTimeout                  = options && options.maxTimeout                 || 5 * 60 * 1000; // 5 minutes
+      this.reconnectIfNotNormalClose   = options && options.reconnectIfNotNormalClose  || false;
+      this.binaryType                  = options && options.binaryType                 || 'blob';
+
+      this._reconnectAttempts = 0;
+      this.sendQueue          = [];
+      this.onOpenCallbacks    = [];
+      this.onMessageCallbacks = [];
+      this.onErrorCallbacks   = [];
+      this.onCloseCallbacks   = [];
+
+      objectFreeze(this._readyStateConstants);
+
+      if (url) {
+        this._connect();
+      } else {
+        this._setInternalState(0);
+      }
+
+    }
+
+
+    $WebSocket.prototype._readyStateConstants = {
+      'CONNECTING': 0,
+      'OPEN': 1,
+      'CLOSING': 2,
+      'CLOSED': 3,
+      'RECONNECT_ABORTED': 4
+    };
+
+    $WebSocket.prototype._normalCloseCode = 1000;
+
+    $WebSocket.prototype._reconnectableStatusCodes = [
+      4000
+    ];
+
+    $WebSocket.prototype.safeDigest = function safeDigest(autoApply) {
+      if (autoApply && !this.scope.$$phase) {
+        this.scope.$digest();
+      }
+    };
+
+    $WebSocket.prototype.bindToScope = function bindToScope(scope) {
+      var self = this;
+      if (scope) {
+        this.scope = scope;
+        if (this.rootScopeFailover) {
+          this.scope.$on('$destroy', function() {
+            self.scope = $rootScope;
+          });
+        }
+      }
+      return self;
+    };
+
+    $WebSocket.prototype._connect = function _connect(force) {
+      if (force || !this.socket || this.socket.readyState !== this._readyStateConstants.OPEN) {
+        this.socket = $websocketBackend.create(this.url, this.protocols);
+        this.socket.binaryType = this.binaryType;
+        this.socket.onmessage = angular.bind(this, this._onMessageHandler);
+        this.socket.onopen  = angular.bind(this, this._onOpenHandler);
+        this.socket.onerror = angular.bind(this, this._onErrorHandler);
+        this.socket.onclose = angular.bind(this, this._onCloseHandler);
+      }
+    };
+
+    $WebSocket.prototype.fireQueue = function fireQueue() {
+      while (this.sendQueue.length && this.socket.readyState === this._readyStateConstants.OPEN) {
+        var data = this.sendQueue.shift();
+
+        this.socket.send(
+          data.message
+        );
+        data.deferred.resolve();
+      }
+    };
+
+    $WebSocket.prototype.notifyOpenCallbacks = function notifyOpenCallbacks(event) {
+      for (var i = 0; i < this.onOpenCallbacks.length; i++) {
+        this.onOpenCallbacks[i].call(this, event);
+      }
+    };
+
+    $WebSocket.prototype.notifyCloseCallbacks = function notifyCloseCallbacks(event) {
+      for (var i = 0; i < this.onCloseCallbacks.length; i++) {
+        this.onCloseCallbacks[i].call(this, event);
+      }
+    };
+
+    $WebSocket.prototype.notifyErrorCallbacks = function notifyErrorCallbacks(event) {
+      for (var i = 0; i < this.onErrorCallbacks.length; i++) {
+        this.onErrorCallbacks[i].call(this, event);
+      }
+    };
+
+    $WebSocket.prototype.onOpen = function onOpen(cb) {
+      this.onOpenCallbacks.push(cb);
+      return this;
+    };
+
+    $WebSocket.prototype.onClose = function onClose(cb) {
+      this.onCloseCallbacks.push(cb);
+      return this;
+    };
+
+    $WebSocket.prototype.onError = function onError(cb) {
+      this.onErrorCallbacks.push(cb);
+      return this;
+    };
+
+
+    $WebSocket.prototype.onMessage = function onMessage(callback, options) {
+      if (!isFunction(callback)) {
+        throw new Error('Callback must be a function');
+      }
+
+      if (options && isDefined(options.filter) && !isString(options.filter) && !(options.filter instanceof RegExp)) {
+        throw new Error('Pattern must be a string or regular expression');
+      }
+
+      this.onMessageCallbacks.push({
+        fn: callback,
+        pattern: options ? options.filter : undefined,
+        autoApply: options ? options.autoApply : true
+      });
+      return this;
+    };
+
+    $WebSocket.prototype._onOpenHandler = function _onOpenHandler(event) {
+      this._reconnectAttempts = 0;
+      this.notifyOpenCallbacks(event);
+      this.fireQueue();
+    };
+
+    $WebSocket.prototype._onCloseHandler = function _onCloseHandler(event) {
+      this.notifyCloseCallbacks(event);
+      if ((this.reconnectIfNotNormalClose && event.code !== this._normalCloseCode) || this._reconnectableStatusCodes.indexOf(event.code) > -1) {
+        this.reconnect();
+      }
+    };
+
+    $WebSocket.prototype._onErrorHandler = function _onErrorHandler(event) {
+      this.notifyErrorCallbacks(event);
+    };
+
+    $WebSocket.prototype._onMessageHandler = function _onMessageHandler(message) {
+      var pattern;
+      var self = this;
+      var currentCallback;
+      for (var i = 0; i < self.onMessageCallbacks.length; i++) {
+        currentCallback = self.onMessageCallbacks[i];
+        pattern = currentCallback.pattern;
+        if (pattern) {
+          if (isString(pattern) && message.data === pattern) {
+            applyAsyncOrDigest(currentCallback.fn, currentCallback.autoApply, message);
+          }
+          else if (pattern instanceof RegExp && pattern.exec(message.data)) {
+            applyAsyncOrDigest(currentCallback.fn, currentCallback.autoApply, message);
+          }
+        }
+        else {
+          applyAsyncOrDigest(currentCallback.fn, currentCallback.autoApply, message);
+        }
+      }
+
+      function applyAsyncOrDigest(callback, autoApply, args) {
+        args = arraySlice.call(arguments, 2);
+        if (self.useApplyAsync) {
+          self.scope.$applyAsync(function() {
+            callback.apply(self, args);
+          });
+        } else {
+          callback.apply(self, args);
+          self.safeDigest(autoApply);
+        }
+      }
+
+    };
+
+    $WebSocket.prototype.close = function close(force) {
+      if (force || !this.socket.bufferedAmount) {
+        this.socket.close();
+      }
+      return this;
+    };
+
+    $WebSocket.prototype.send = function send(data) {
+      var deferred = $q.defer();
+      var self = this;
+      var promise = cancelableify(deferred.promise);
+
+      if (self.readyState === self._readyStateConstants.RECONNECT_ABORTED) {
+        deferred.reject('Socket connection has been closed');
+      }
+      else {
+        self.sendQueue.push({
+          message: data,
+          deferred: deferred
+        });
+        self.fireQueue();
+      }
+
+      // Credit goes to @btford
+      function cancelableify(promise) {
+        promise.cancel = cancel;
+        var then = promise.then;
+        promise.then = function() {
+          var newPromise = then.apply(this, arguments);
+          return cancelableify(newPromise);
+        };
+        return promise;
+      }
+
+      function cancel(reason) {
+        self.sendQueue.splice(self.sendQueue.indexOf(data), 1);
+        deferred.reject(reason);
+        return self;
+      }
+
+      if ($websocketBackend.isMocked && $websocketBackend.isMocked() &&
+              $websocketBackend.isConnected(this.url)) {
+        this._onMessageHandler($websocketBackend.mockSend());
+      }
+
+      return promise;
+    };
+
+    $WebSocket.prototype.reconnect = function reconnect() {
+      this.close();
+
+      var backoffDelay = this._getBackoffDelay(++this._reconnectAttempts);
+
+      var backoffDelaySeconds = backoffDelay / 1000;
+      console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
+
+      $timeout(angular.bind(this, this._connect), backoffDelay);
+
+      return this;
+    };
+    // Exponential Backoff Formula by Prof. Douglas Thain
+    // http://dthain.blogspot.co.uk/2009/02/exponential-backoff-in-distributed.html
+    $WebSocket.prototype._getBackoffDelay = function _getBackoffDelay(attempt) {
+      var R = Math.random() + 1;
+      var T = this.initialTimeout;
+      var F = 2;
+      var N = attempt;
+      var M = this.maxTimeout;
+
+      return Math.floor(Math.min(R * T * Math.pow(F, N), M));
+    };
+
+    $WebSocket.prototype._setInternalState = function _setInternalState(state) {
+      if (Math.floor(state) !== state || state < 0 || state > 4) {
+        throw new Error('state must be an integer between 0 and 4, got: ' + state);
+      }
+
+      // ie8 wat
+      if (!objectDefineProperty) {
+        this.readyState = state || this.socket.readyState;
+      }
+      this._internalConnectionState = state;
+
+
+      forEach(this.sendQueue, function(pending) {
+        pending.deferred.reject('Message cancelled due to closed socket connection');
+      });
+    };
+
+    // Read only .readyState
+    if (objectDefineProperty) {
+      objectDefineProperty($WebSocket.prototype, 'readyState', {
+        get: function() {
+          return this._internalConnectionState || this.socket.readyState;
+        },
+        set: function() {
+          throw new Error('The readyState property is read-only');
+        }
+      });
+    }
+
+    return function(url, protocols, options) {
+      return new $WebSocket(url, protocols, options);
+    };
+  }
+
+  // $WebSocketBackendProvider.$inject = ['$window', '$log'];
+  function $WebSocketBackendProvider($window, $log) {
+    this.create = function create(url, protocols) {
+      var match = /wss?:\/\//.exec(url);
+      var Socket, ws;
+      if (!match) {
+        throw new Error('Invalid url provided');
+      }
+
+      // CommonJS
+      if (typeof exports === 'object' && require) {
+        try {
+          ws = require('ws');
+          Socket = (ws.Client || ws.client || ws);
+        } catch(e) {}
+      }
+
+      // Browser
+      Socket = Socket || $window.WebSocket || $window.MozWebSocket;
+
+      if (protocols) {
+        return new Socket(url, protocols);
+      }
+
+      return new Socket(url);
+    };
+    this.createWebSocketBackend = function createWebSocketBackend(url, protocols) {
+      $log.warn('Deprecated: Please use .create(url, protocols)');
+      return this.create(url, protocols);
+    };
+  }
+
+  angular.module('ngWebSocket', [])
+  .factory('$websocket', ['$rootScope', '$q', '$timeout', '$websocketBackend', $WebSocketProvider])
+  .factory('WebSocket',  ['$rootScope', '$q', '$timeout', 'WebsocketBackend',  $WebSocketProvider])
+  .service('$websocketBackend', ['$window', '$log', $WebSocketBackendProvider])
+  .service('WebSocketBackend',  ['$window', '$log', $WebSocketBackendProvider]);
+
+
+  angular.module('angular-websocket', ['ngWebSocket']);
+
+  if (typeof module === 'object' && typeof define !== 'function') {
+    module.exports = angular.module('ngWebSocket');
+  }
+}());/*
  AngularJS v1.4.4
  (c) 2010-2015 Google, Inc. http://angularjs.org
  License: MIT
@@ -722,400 +1194,18 @@ var Base64 = {
         return string;
     }
     
-    }(function() {
-  'use strict';
-
-  var noop = angular.noop;
-  var objectFreeze  = (Object.freeze) ? Object.freeze : noop;
-  var objectDefineProperty = Object.defineProperty;
-  var isString   = angular.isString;
-  var isFunction = angular.isFunction;
-  var isDefined  = angular.isDefined;
-  var isObject   = angular.isObject;
-  var isArray    = angular.isArray;
-  var forEach    = angular.forEach;
-  var arraySlice = Array.prototype.slice;
-  // ie8 wat
-  if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function(elt /*, from*/) {
-      var len = this.length >>> 0;
-      var from = Number(arguments[1]) || 0;
-      from = (from < 0) ? Math.ceil(from) : Math.floor(from);
-      if (from < 0) {
-        from += len;
-      }
-
-      for (; from < len; from++) {
-        if (from in this && this[from] === elt) { return from; }
-      }
-      return -1;
-    };
-  }
-
-  // $WebSocketProvider.$inject = ['$rootScope', '$q', '$timeout', '$websocketBackend'];
-  function $WebSocketProvider($rootScope, $q, $timeout, $websocketBackend) {
-
-    function $WebSocket(url, protocols, options) {
-      if (!options && isObject(protocols) && !isArray(protocols)) {
-        options = protocols;
-        protocols = undefined;
-      }
-
-      this.protocols = protocols;
-      this.url = url || 'Missing URL';
-      this.ssl = /(wss)/i.test(this.url);
-
-      // this.extensions = '';
-      // this.bufferedAmount = 0;
-      // this.trasnmitting = false;
-      // this.buffer = [];
-
-      // TODO: refactor options to use isDefined
-      this.scope                       = options && options.scope                      || $rootScope;
-      this.rootScopeFailover           = options && options.rootScopeFailover          && true;
-      this.useApplyAsync               = options && options.useApplyAsync              || false;
-      this.initialTimeout              = options && options.initialTimeout             || 500; // 500ms
-      this.maxTimeout                  = options && options.maxTimeout                 || 5 * 60 * 1000; // 5 minutes
-      this.reconnectIfNotNormalClose   = options && options.reconnectIfNotNormalClose  || false;
-      this.binaryType                  = options && options.binaryType                 || 'blob';
-
-      this._reconnectAttempts = 0;
-      this.sendQueue          = [];
-      this.onOpenCallbacks    = [];
-      this.onMessageCallbacks = [];
-      this.onErrorCallbacks   = [];
-      this.onCloseCallbacks   = [];
-
-      objectFreeze(this._readyStateConstants);
-
-      if (url) {
-        this._connect();
-      } else {
-        this._setInternalState(0);
-      }
-
-    }
-
-
-    $WebSocket.prototype._readyStateConstants = {
-      'CONNECTING': 0,
-      'OPEN': 1,
-      'CLOSING': 2,
-      'CLOSED': 3,
-      'RECONNECT_ABORTED': 4
-    };
-
-    $WebSocket.prototype._normalCloseCode = 1000;
-
-    $WebSocket.prototype._reconnectableStatusCodes = [
-      4000
-    ];
-
-    $WebSocket.prototype.safeDigest = function safeDigest(autoApply) {
-      if (autoApply && !this.scope.$$phase) {
-        this.scope.$digest();
-      }
-    };
-
-    $WebSocket.prototype.bindToScope = function bindToScope(scope) {
-      var self = this;
-      if (scope) {
-        this.scope = scope;
-        if (this.rootScopeFailover) {
-          this.scope.$on('$destroy', function() {
-            self.scope = $rootScope;
-          });
-        }
-      }
-      return self;
-    };
-
-    $WebSocket.prototype._connect = function _connect(force) {
-      if (force || !this.socket || this.socket.readyState !== this._readyStateConstants.OPEN) {
-        this.socket = $websocketBackend.create(this.url, this.protocols);
-        this.socket.binaryType = this.binaryType;
-        this.socket.onmessage = angular.bind(this, this._onMessageHandler);
-        this.socket.onopen  = angular.bind(this, this._onOpenHandler);
-        this.socket.onerror = angular.bind(this, this._onErrorHandler);
-        this.socket.onclose = angular.bind(this, this._onCloseHandler);
-      }
-    };
-
-    $WebSocket.prototype.fireQueue = function fireQueue() {
-      while (this.sendQueue.length && this.socket.readyState === this._readyStateConstants.OPEN) {
-        var data = this.sendQueue.shift();
-
-        this.socket.send(
-          data.message
-        );
-        data.deferred.resolve();
-      }
-    };
-
-    $WebSocket.prototype.notifyOpenCallbacks = function notifyOpenCallbacks(event) {
-      for (var i = 0; i < this.onOpenCallbacks.length; i++) {
-        this.onOpenCallbacks[i].call(this, event);
-      }
-    };
-
-    $WebSocket.prototype.notifyCloseCallbacks = function notifyCloseCallbacks(event) {
-      for (var i = 0; i < this.onCloseCallbacks.length; i++) {
-        this.onCloseCallbacks[i].call(this, event);
-      }
-    };
-
-    $WebSocket.prototype.notifyErrorCallbacks = function notifyErrorCallbacks(event) {
-      for (var i = 0; i < this.onErrorCallbacks.length; i++) {
-        this.onErrorCallbacks[i].call(this, event);
-      }
-    };
-
-    $WebSocket.prototype.onOpen = function onOpen(cb) {
-      this.onOpenCallbacks.push(cb);
-      return this;
-    };
-
-    $WebSocket.prototype.onClose = function onClose(cb) {
-      this.onCloseCallbacks.push(cb);
-      return this;
-    };
-
-    $WebSocket.prototype.onError = function onError(cb) {
-      this.onErrorCallbacks.push(cb);
-      return this;
-    };
-
-
-    $WebSocket.prototype.onMessage = function onMessage(callback, options) {
-      if (!isFunction(callback)) {
-        throw new Error('Callback must be a function');
-      }
-
-      if (options && isDefined(options.filter) && !isString(options.filter) && !(options.filter instanceof RegExp)) {
-        throw new Error('Pattern must be a string or regular expression');
-      }
-
-      this.onMessageCallbacks.push({
-        fn: callback,
-        pattern: options ? options.filter : undefined,
-        autoApply: options ? options.autoApply : true
-      });
-      return this;
-    };
-
-    $WebSocket.prototype._onOpenHandler = function _onOpenHandler(event) {
-      this._reconnectAttempts = 0;
-      this.notifyOpenCallbacks(event);
-      this.fireQueue();
-    };
-
-    $WebSocket.prototype._onCloseHandler = function _onCloseHandler(event) {
-      this.notifyCloseCallbacks(event);
-      if ((this.reconnectIfNotNormalClose && event.code !== this._normalCloseCode) || this._reconnectableStatusCodes.indexOf(event.code) > -1) {
-        this.reconnect();
-      }
-    };
-
-    $WebSocket.prototype._onErrorHandler = function _onErrorHandler(event) {
-      this.notifyErrorCallbacks(event);
-    };
-
-    $WebSocket.prototype._onMessageHandler = function _onMessageHandler(message) {
-      var pattern;
-      var self = this;
-      var currentCallback;
-      for (var i = 0; i < self.onMessageCallbacks.length; i++) {
-        currentCallback = self.onMessageCallbacks[i];
-        pattern = currentCallback.pattern;
-        if (pattern) {
-          if (isString(pattern) && message.data === pattern) {
-            applyAsyncOrDigest(currentCallback.fn, currentCallback.autoApply, message);
-          }
-          else if (pattern instanceof RegExp && pattern.exec(message.data)) {
-            applyAsyncOrDigest(currentCallback.fn, currentCallback.autoApply, message);
-          }
-        }
-        else {
-          applyAsyncOrDigest(currentCallback.fn, currentCallback.autoApply, message);
-        }
-      }
-
-      function applyAsyncOrDigest(callback, autoApply, args) {
-        args = arraySlice.call(arguments, 2);
-        if (self.useApplyAsync) {
-          self.scope.$applyAsync(function() {
-            callback.apply(self, args);
-          });
-        } else {
-          callback.apply(self, args);
-          self.safeDigest(autoApply);
-        }
-      }
-
-    };
-
-    $WebSocket.prototype.close = function close(force) {
-      if (force || !this.socket.bufferedAmount) {
-        this.socket.close();
-      }
-      return this;
-    };
-
-    $WebSocket.prototype.send = function send(data) {
-      var deferred = $q.defer();
-      var self = this;
-      var promise = cancelableify(deferred.promise);
-
-      if (self.readyState === self._readyStateConstants.RECONNECT_ABORTED) {
-        deferred.reject('Socket connection has been closed');
-      }
-      else {
-        self.sendQueue.push({
-          message: data,
-          deferred: deferred
-        });
-        self.fireQueue();
-      }
-
-      // Credit goes to @btford
-      function cancelableify(promise) {
-        promise.cancel = cancel;
-        var then = promise.then;
-        promise.then = function() {
-          var newPromise = then.apply(this, arguments);
-          return cancelableify(newPromise);
-        };
-        return promise;
-      }
-
-      function cancel(reason) {
-        self.sendQueue.splice(self.sendQueue.indexOf(data), 1);
-        deferred.reject(reason);
-        return self;
-      }
-
-      if ($websocketBackend.isMocked && $websocketBackend.isMocked() &&
-              $websocketBackend.isConnected(this.url)) {
-        this._onMessageHandler($websocketBackend.mockSend());
-      }
-
-      return promise;
-    };
-
-    $WebSocket.prototype.reconnect = function reconnect() {
-      this.close();
-
-      var backoffDelay = this._getBackoffDelay(++this._reconnectAttempts);
-
-      var backoffDelaySeconds = backoffDelay / 1000;
-      console.log('Reconnecting in ' + backoffDelaySeconds + ' seconds');
-
-      $timeout(angular.bind(this, this._connect), backoffDelay);
-
-      return this;
-    };
-    // Exponential Backoff Formula by Prof. Douglas Thain
-    // http://dthain.blogspot.co.uk/2009/02/exponential-backoff-in-distributed.html
-    $WebSocket.prototype._getBackoffDelay = function _getBackoffDelay(attempt) {
-      var R = Math.random() + 1;
-      var T = this.initialTimeout;
-      var F = 2;
-      var N = attempt;
-      var M = this.maxTimeout;
-
-      return Math.floor(Math.min(R * T * Math.pow(F, N), M));
-    };
-
-    $WebSocket.prototype._setInternalState = function _setInternalState(state) {
-      if (Math.floor(state) !== state || state < 0 || state > 4) {
-        throw new Error('state must be an integer between 0 and 4, got: ' + state);
-      }
-
-      // ie8 wat
-      if (!objectDefineProperty) {
-        this.readyState = state || this.socket.readyState;
-      }
-      this._internalConnectionState = state;
-
-
-      forEach(this.sendQueue, function(pending) {
-        pending.deferred.reject('Message cancelled due to closed socket connection');
-      });
-    };
-
-    // Read only .readyState
-    if (objectDefineProperty) {
-      objectDefineProperty($WebSocket.prototype, 'readyState', {
-        get: function() {
-          return this._internalConnectionState || this.socket.readyState;
-        },
-        set: function() {
-          throw new Error('The readyState property is read-only');
-        }
-      });
-    }
-
-    return function(url, protocols, options) {
-      return new $WebSocket(url, protocols, options);
-    };
-  }
-
-  // $WebSocketBackendProvider.$inject = ['$window', '$log'];
-  function $WebSocketBackendProvider($window, $log) {
-    this.create = function create(url, protocols) {
-      var match = /wss?:\/\//.exec(url);
-      var Socket, ws;
-      if (!match) {
-        throw new Error('Invalid url provided');
-      }
-
-      // CommonJS
-      if (typeof exports === 'object' && require) {
-        try {
-          ws = require('ws');
-          Socket = (ws.Client || ws.client || ws);
-        } catch(e) {}
-      }
-
-      // Browser
-      Socket = Socket || $window.WebSocket || $window.MozWebSocket;
-
-      if (protocols) {
-        return new Socket(url, protocols);
-      }
-
-      return new Socket(url);
-    };
-    this.createWebSocketBackend = function createWebSocketBackend(url, protocols) {
-      $log.warn('Deprecated: Please use .create(url, protocols)');
-      return this.create(url, protocols);
-    };
-  }
-
-  angular.module('ngWebSocket', [])
-  .factory('$websocket', ['$rootScope', '$q', '$timeout', '$websocketBackend', $WebSocketProvider])
-  .factory('WebSocket',  ['$rootScope', '$q', '$timeout', 'WebsocketBackend',  $WebSocketProvider])
-  .service('$websocketBackend', ['$window', '$log', $WebSocketBackendProvider])
-  .service('WebSocketBackend',  ['$window', '$log', $WebSocketBackendProvider]);
-
-
-  angular.module('angular-websocket', ['ngWebSocket']);
-
-  if (typeof module === 'object' && typeof define !== 'function') {
-    module.exports = angular.module('ngWebSocket');
-  }
-}());`)
+    }`)
 type contentIndexStruct struct {
     begin int
     end int
 }
-var contentIndex = map[string]contentIndexStruct{"/lib/jquery-1.9.1.min.js":{157348,249977},
-"/index.html":{0,4180},
-"/lib/angular.min.js":{10289,157348},
-"/main.js":{5062,10289},
-"/main.css":{4180,5062},
-"/lib/base64.js":{249977,253862},
-"/lib/angular-websocket.js":{253862,266196},
+var contentIndex = map[string]contentIndexStruct{"/lib/jquery-1.9.1.min.js":{173419,266048},
+"/index.html":{882,8473},
+"/lib/angular.min.js":{26360,173419},
+"/main.js":{8473,14026},
+"/main.css":{0,882},
+"/lib/base64.js":{266048,269933},
+"/lib/angular-websocket.js":{14026,26360},
 }
 func GetContent(uri string) ([]byte, error) {
     if val, ok := contentIndex[uri]; ok {

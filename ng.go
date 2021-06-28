@@ -8,6 +8,9 @@ import (
 	"os"
 	"time"
 
+	"nggraph/handlers"
+	"nggraph/ngdns"
+
 	"github.com/ga0/netgraph/ngnet"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -29,13 +32,20 @@ var saveEvent = flag.Bool("s", false, "Save HTTP event in server")
 
 var verbose = flag.Bool("v", true, "Show more message")
 
+var (
+	err    error
+	handle *pcap.Handle
+	SrcIP  string
+	DstIP  string
+)
+
 // NGHTTPEventHandler handle HTTP events
 type NGHTTPEventHandler interface {
 	PushEvent(interface{})
 	Wait()
 }
 
-var handlers []NGHTTPEventHandler
+var localHandlers []NGHTTPEventHandler
 
 func init() {
 	flag.Parse()
@@ -58,13 +68,16 @@ func initEventHandlers() {
 		addr := fmt.Sprintf(":%d", *bindingPort)
 		ngserver := NewNGServer(addr, *saveEvent)
 		ngserver.Serve()
-		handlers = append(handlers, ngserver)
+		localHandlers = append(localHandlers, ngserver)
 	}
 
 	if *outputHTTP != "" {
 		p := NewEventPrinter(*outputHTTP)
-		handlers = append(handlers, p)
+		localHandlers = append(localHandlers, p)
 	}
+
+	dnsEvent := handlers.NewDnsEventPrinterHandler("")
+	localHandlers = append(localHandlers, dnsEvent)
 }
 
 func autoSelectDev() string {
@@ -73,9 +86,9 @@ func autoSelectDev() string {
 		log.Fatalln(err)
 	}
 	var available []string
+	var addrs []string
 	for _, i := range ifs {
 		addrFound := false
-		var addrs []string
 		for _, addr := range i.Addresses {
 			if addr.IP.IsLoopback() ||
 				addr.IP.IsMulticast() ||
@@ -91,7 +104,7 @@ func autoSelectDev() string {
 		}
 	}
 	if len(available) > 0 {
-		return available[0]
+		return available[1]
 	}
 	return ""
 }
@@ -264,24 +277,116 @@ func runEventHandler(eventChan <-chan interface{}) {
 		if e == nil {
 			break
 		}
-		for _, h := range handlers {
+		for _, h := range localHandlers {
 			h.PushEvent(e)
 		}
 	}
 
-	for _, h := range handlers {
+	for _, h := range localHandlers {
 		h.Wait()
 	}
 }
 
-/*
-   create client.go
-*/
-//go:generate python embed_html.py
+func runNGDns(eventChan chan<- interface{}) {
+	var eth layers.Ethernet
+	var ip4 layers.IPv4
+	var ip6 layers.IPv6
+	var tcp layers.TCP
+	var udp layers.UDP
+	var dns layers.DNS
+
+	var payload gopacket.Payload
+
+	if *device == "" {
+		*device = autoSelectDev()
+		if *device == "" {
+			log.Fatalln("no device to capture")
+		}
+	}
+
+	handle, err = pcap.OpenLive(*device, 1600, false, pcap.BlockForever)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer handle.Close()
+
+	// Set filter
+	var filter string = "port 53"
+	fmt.Println("    Filter: ", filter)
+	err := handle.SetBPFFilter(filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	parser := gopacket.NewDecodingLayerParser(layers.LayerTypeEthernet, &eth, &ip4, &ip6, &tcp, &udp, &dns, &payload)
+
+	decodedLayers := make([]gopacket.LayerType, 0, 10)
+	for {
+		data, _, err := handle.ReadPacketData()
+		if err != nil {
+			fmt.Println("Error reading packet data: ", err)
+			continue
+		}
+
+		err = parser.DecodeLayers(data, &decodedLayers)
+		for _, typ := range decodedLayers {
+			switch typ {
+			case layers.LayerTypeIPv4:
+				SrcIP = ip4.SrcIP.String()
+				DstIP = ip4.DstIP.String()
+			case layers.LayerTypeIPv6:
+				SrcIP = ip6.SrcIP.String()
+				DstIP = ip6.DstIP.String()
+			case layers.LayerTypeDNS:
+				dnsOpCode := int(dns.OpCode)
+				dnsResponseCode := int(dns.ResponseCode)
+				dnsANCount := int(dns.ANCount)
+
+				if (dnsANCount == 0 && dnsResponseCode == 0) || (dnsANCount > 0) {
+
+					dnsEvent := ngdns.DNSEvent{
+						Type:         "DNSEvent",
+						ID:           dns.ID,
+						QR:           dns.QR,
+						OpCode:       dnsOpCode,
+						ResponseCode: dns.ResponseCode.String(),
+						Questions:    make([]ngdns.DNSQuestion, 0),
+						Answers:      make([]ngdns.DNSAnswer, 0),
+					}
+
+					for _, dnsQuestion := range dns.Questions {
+						dnsEvent.Questions = append(dnsEvent.Questions, ngdns.DNSQuestion{
+							Name:  string(dnsQuestion.Name),
+							Type:  dnsQuestion.Type.String(),
+							Class: dnsQuestion.Class.String(),
+						})
+					}
+
+					for _, dnsAnswer := range dns.Answers {
+						dnsEvent.Answers = append(dnsEvent.Answers, ngdns.DNSAnswer{
+							Name:       string(dnsAnswer.Name),
+							Type:       dnsAnswer.Type.String(),
+							Class:      dnsAnswer.Class.String(),
+							DataLength: dnsAnswer.DataLength,
+						})
+					}
+
+					eventChan <- dnsEvent
+				}
+
+			}
+		}
+
+		if err != nil {
+			fmt.Println("  Error encountered:", err)
+		}
+	}
+}
 
 func main() {
 	initEventHandlers()
 	eventChan := make(chan interface{}, 1024)
 	go runNGNet(packetSource(), eventChan)
+	go runNGDns(eventChan)
 	runEventHandler(eventChan)
 }
